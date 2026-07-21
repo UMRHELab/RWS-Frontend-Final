@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MRWS - Public Environmental Observatory</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+    <link rel="stylesheet" href="../styles/styles.css">
+    <link rel="stylesheet" href="../styles/sidebar.css">
+    <link rel="stylesheet" href="../styles/footer.css">
+    <link rel="stylesheet" href="../styles/index.css">
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <img src="../icon/rwsbiglogo.png" alt="RWS Logo" class="sidebar-logo-img">
+        </div>
+
+        <nav class="sidebar-nav">
+            <p class="sidebar-section-label">Stations</p>
+
+            <a href="index.html#overview" class="sidebar-link">
+                <img src="../icon/overview.png" alt="Overview" class="sidebar-nav-icon"> Overview
+            </a>
+            <a href="index.html#conditions" class="sidebar-link">
+                <img src="../icon/currentcon.png" alt="Current Conditions" class="sidebar-nav-icon"> Current Conditions
+            </a>
+
+            <div class="sidebar-dropdown">
+                <button onclick="toggleRadiationsMenu()" class="sidebar-dropdown-toggle">
+                    <span class="sidebar-dropdown-label">
+                        <img src="../icon/radiation.png" alt="Radiations" class="sidebar-nav-icon"> Radiations
+                    </span>
+                    <svg id="radiation-chevron" class="sidebar-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+
+                <div id="radiations-submenu" class="sidebar-submenu hidden">
+                    <a href="cs-facility.html" class="sidebar-station-link inactive">
+                        <span>CS Facility Aux Station</span>
+                        <img src="../icon/online.png" alt="Online" class="sidebar-station-icon">
+                    </a>
+                    <a href="basement.html" class="sidebar-station-link inactive">
+                        <span>Basement Aux Station</span>
+                        <img src="../icon/online.png" alt="Online" class="sidebar-station-icon">
+                    </a>
+                    <a href="rm1962.html" class="sidebar-station-link inactive">
+                        <span>Room 1962 Aux Station</span>
+                        <img src="../icon/online.png" alt="Online" class="sidebar-station-icon">
+                    </a>
+
+                </div>
+            </div>
+
+            <a href="index.html#measures" class="sidebar-link"><img src="../icon/measure.png" alt="What we measure" class="sidebar-nav-icon"> What we measure</a>
+            <a href="index.html#news"     class="sidebar-link"><img src="../icon/news.png" alt="News & Updates" class="sidebar-nav-icon"> News &amp; Updates</a>
+            <a href="index.html#about"    class="sidebar-link"><img src="../icon/about.png" alt="About RWS" class="sidebar-nav-icon"> About RWS</a>
+        </nav>
+    </aside>
+
+    <div class="main-viewport">
+
+        <header class="global-header">
+            <div class="header-left">
+                <span class="header-scope-label">Public Environmental Observatory</span>
+                <div class="network-badge">
+                    <span class="network-ping-dot"></span>
+                    Live Network Data
+                </div>
+                <span id="top-bar-clock" class="live-clock">--:--:--</span>
+            </div>
+            <div class="header-right">
+                <div class="local-weather-pill">
+                    <span>Ann Arbor, MI</span>
+                    <span class="separator"></span>
+                    <span class="temp-highlight" id="nav-temp">68°F</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="workspace-container index-content">
+
+            <!-- Greeting / hero banner -->
+            <div class="station-hero-banner">
+                <div class="hero-identity-block">
+                    <div class="hero-weather-summary">
+                        <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <g class="sun-rays">
+                                <line x1="26" y1="2"  x2="26" y2="10" stroke="#ffcb05" stroke-width="2.5" stroke-linecap="round"></line>
+                                <line x1="26" y1="42" x2="26" y2="50" stroke="#ffcb05" stroke-width="2.5" stroke-linecap="round"></line>
+                                <line x1="2"  y1="26" x2="10" y2="26" stroke="#ffcb05" stroke-width="2.5" stroke-linecap="round"></line>
+                                <line x1="42" y1="26" x2="50" y2="26" stroke="#ffcb05" stroke-width="2.5" stroke-linecap="round"></line>
+                                <line x1="8.1"  y1="8.1"  x2="13.8" y2="13.8" stroke="#ffcb05" stroke-width="2.5" stroke-linecap="round"></line>
+                                <line x1="38.2" y1="38.2" x2="43.9" y2="43.9" stroke="#ffcb05" stroke-width="2.5" stroke-linecap="round"></line>
+                                <line x1="43.9" y1="8.1"  x2="38.2" y2="13.8" stroke="#ffcb05" stroke-width="2.5" stroke-linecap="round"></line>
+                                <line x1="13.8" y1="38.2" x2="8.1"  y2="43.9" stroke="#ffcb05" stroke-width="2.5" stroke-linecap="round"></line>
+                            </g>
+                            <circle cx="26" cy="26" r="10" fill="#ffcb05"/>
+                        </svg>
+                        <div>
+                            <div class="hero-temp-readout" id="weather-temp">56</div>
+                            <div class="hero-condition-txt">Sunny · Feels like <span id="weather-feels">56</span></div>
+                            <div class="hero-extremes-range">
+                                <span>↑ <span id="weather-hi">71 F</span> High</span>
+                                <span>↓ <span id="weather-lo">55 F</span> Low</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hero-meta-titles">
+                        <h1 id="greeting-text">Good Evening!</h1>
+                        <p class="subtitle">Welcome to the Radiation Weather Station Database</p>
+                        <p class="caption">University of Michigan North Campus perimeter sensor array.</p>
+                    </div>
+                </div>
+
+                <div class="hero-action-block">
+                    <a href="#conditions" class="back-btn" style="text-decoration:none;">
+                        <span class="rad-explain-btn__info-badge" style="width:1rem;height:1rem;border-radius:9999px;border:1px solid #64748b;display:flex;align-items:center;justify-content:center;font-size:9px;color:#cbd5e1;">i</span>
+                        See Full Forecast
+                        <span style="color:#94a3b8;">›</span>
+                    </a>
+                    <span class="banner-date-stamp" id="greeting-date">Thursday, June 25, 2026</span>
+                </div>
+            </div>
+
+            <!-- Stations Map -->
+            <section id="overview">
+                <div class="section-row-header">
+                    <div>
+                        <h2>Stations Map</h2>
+                        <p>Drag to orbit · scroll to zoom · sensor nodes update in real-time.</p>
+                    </div>
+                    <button onclick="exportAllStationsCSV()" class="export-data-btn">
+                        Export Data <span>▼</span>
+                    </button>
+                </div>
+
+                <div class="map-grid">
+                    <div class="three-card">
+                        <div id="three-container" class="three-canvas"></div>
+                    </div>
+
+                    <div class="station-list-col">
+                        <div class="station-card station-card--roof">
+                            <div class="station-card-top">
+                                <div>
+                                    <h3>CS Facility Auxiliary Station</h3>
+                                    <p>Roof Level Node Location</p>
+                                </div>
+                                <div class="station-status">
+                                    <span class="station-dot station-dot--roof animate-pulse"></span>
+                                    <span class="station-status-label">NORMAL</span>
+                                </div>
+                            </div>
+                            <a href="cs-facility.html" class="station-link-btn station-link-btn--roof">See Full Data →</a>
+                        </div>
+
+                        <div class="station-card station-card--indoor">
+                            <div class="station-card-top">
+                                <div>
+                                    <h3>RM 1962 Auxiliary Station</h3>
+                                    <p>Indoor Main Lab Level Node</p>
+                                </div>
+                                <div class="station-status">
+                                    <span class="station-dot station-dot--indoor animate-pulse"></span>
+                                    <span class="station-status-label">NORMAL</span>
+                                </div>
+                            </div>
+                            <a href="rm1962.html" class="station-link-btn station-link-btn--indoor">See Full Data →</a>
+                        </div>
+
+                        <div class="station-card station-card--basement">
+                            <div class="station-card-top">
+                                <div>
+                                    <h3>Basement Aux Station</h3>
+                                    <p>Sub-level Core Node Location</p>
+                                </div>
+                                <div class="station-status">
+                                    <span class="station-dot station-dot--basement animate-pulse"></span>
+                                    <span class="station-status-label">NORMAL</span>
+                                </div>
+                            </div>
+                            <a href="basement.html" class="station-link-btn station-link-btn--basement">See Full Data →</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Environment Overview -->
+            <section id="conditions" class="env-section">
+                <div class="env-header">
+                    <div>
+                        <h2>Environment Overview</h2>
+                        <p>Live telemetry · 6 isolated metric channels · updates every 5s</p>
+                    </div>
+                    <div class="live-badge">
+                        <span class="live-badge-dot"></span>
+                        Live • every 5s
+                    </div>
+                </div>
+
+                <div class="env-grid">
+                    <div class="sparkline-area">
+                        <div class="sparkline-card sparkline-card--temp">
+                            <div class="sparkline-header">
+                                <span class="sparkline-label sparkline-label--temp">Air Temp</span>
+                                <span class="sparkline-unit">°F</span>
+                            </div>
+                            <div class="sparkline-value sparkline-value--temp" id="current-temp">—</div>
+                            <div class="sparkline-canvas-wrap"><canvas id="chart-temp"></canvas></div>
+                        </div>
+
+                        <div class="sparkline-card sparkline-card--humidity">
+                            <div class="sparkline-header">
+                                <span class="sparkline-label sparkline-label--humidity">Humidity</span>
+                                <span class="sparkline-unit">%</span>
+                            </div>
+                            <div class="sparkline-value sparkline-value--humidity" id="current-humidity">—</div>
+                            <div class="sparkline-canvas-wrap"><canvas id="chart-humidity"></canvas></div>
+                        </div>
+
+                        <div class="sparkline-card sparkline-card--wind">
+                            <div class="sparkline-header">
+                                <span class="sparkline-label sparkline-label--wind">Wind</span>
+                                <span class="sparkline-unit">mph</span>
+                            </div>
+                            <div class="sparkline-value sparkline-value--wind" id="current-wind">—</div>
+                            <div class="sparkline-canvas-wrap"><canvas id="chart-wind"></canvas></div>
+                        </div>
+
+                        <div class="sparkline-card sparkline-card--rain">
+                            <div class="sparkline-header">
+                                <span class="sparkline-label sparkline-label--rain">Rainfall</span>
+                                <span class="sparkline-unit">in</span>
+                            </div>
+                            <div class="sparkline-value sparkline-value--rain" id="current-rain">—</div>
+                            <div class="sparkline-canvas-wrap"><canvas id="chart-rain"></canvas></div>
+                        </div>
+
+                        <div class="sparkline-card sparkline-card--solar">
+                            <div class="sparkline-header">
+                                <span class="sparkline-label sparkline-label--solar">Solar</span>
+                                <span class="sparkline-unit">Lux</span>
+                            </div>
+                            <div class="sparkline-value sparkline-value--solar" id="current-solar">—</div>
+                            <div class="sparkline-canvas-wrap"><canvas id="chart-solar"></canvas></div>
+                        </div>
+
+                        <div class="sparkline-card sparkline-card--radon">
+                            <div class="sparkline-header">
+                                <span class="sparkline-label sparkline-label--radon">Radon</span>
+                                <span class="sparkline-unit">pCi/L</span>
+                            </div>
+                            <div class="sparkline-value sparkline-value--radon" id="current-radon">—</div>
+                            <div class="sparkline-canvas-wrap"><canvas id="chart-radon"></canvas></div>
+                        </div>
+                    </div>
+
+                    <div class="rad-col">
+                        <div class="rad-panel">
+                            <div class="rad-panel-top">
+                                <span class="rad-section-title">Radiation Level</span>
+                                <div id="rad-status-text" style="margin-bottom:0.25rem;font-size:1.5rem;font-weight:800;color:#22c55e;">Normal</div>
+                                <div class="rad-value-row">
+                                    <span id="current-rad" class="rad-value-number">82</span>
+                                    <span class="rad-value-unit">nSv/h</span>
+                                </div>
+                                <p class="rad-range-note" id="rad-range-text">Typical background radiation</p>
+                            </div>
+
+                            <div id="rad-shield" class="rad-shield-ring">
+                                <svg id="rad-shield-icon" style="color:#22c55e;width:2.5rem;height:2.5rem;" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+                                </svg>
+                            </div>
+
+                            <div id="rad-info-box" class="rad-info-chip">
+                                <span id="rad-info-icon" class="rad-info-icon">●</span>
+                                <div>
+                                    <h4 id="rad-info-title">Safe range.</h4>
+                                    <p id="rad-info-text">Radiation levels naturally vary.</p>
+                                </div>
+                            </div>
+
+                            <button onclick="openRadiationInfo()" class="rad-explain-btn">
+                                <span class="info-badge">i</span>
+                                <span>What does this mean?</span>
+                                <span class="arrow">›</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- What We Measure / Highlights / Camera -->
+            <section id="measures" class="info-cards-grid">
+                <div class="info-card info-card--wide">
+                    <div>
+                        <h3>Understanding our Environment</h3>
+                        <p>We measure many things to understand our environment and keep our campus community informed.</p>
+                        <div class="measure-grid">
+                            <div class="measure-item">
+                                <div class="measure-icon measure-icon--rad"><img src="../icon/rad.png" alt="Radiation"></div>
+                                <div>
+                                    <h4>Radiation</h4>
+                                    <p>Natural background variation.</p>
+                                </div>
+                            </div>
+                            <div class="measure-item">
+                                <div class="measure-icon measure-icon--solar"><img src="../icon/solar.png" alt="Solar"></div>
+                                <div>
+                                    <h4>Solar</h4>
+                                    <p>Solar energy and climate metrics.</p>
+                                </div>
+                            </div>
+                            <div class="measure-item">
+                                <div class="measure-icon measure-icon--weather"><img src="../icon/cloud_under.png" alt="Weather"></div>
+                                <div>
+                                    <h4>Weather</h4>
+                                    <p>Temp, humidity, precipitation.</p>
+                                </div>
+                            </div>
+                            <div class="measure-item">
+                                <div class="measure-icon measure-icon--soil"><img src="../icon/soil.png" alt="Soil"></div>
+                                <div>
+                                    <h4>Soil</h4>
+                                    <p>Moisture and ground health.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="info-card-btn">Learn more about what we measure ›</button>
+                </div>
+
+                <div class="info-card info-card--half">
+                    <div>
+                        <h3>Recent Highlights</h3>
+                        <div class="highlights-list">
+                            <div class="highlight-row">
+                                <div class="highlight-left">
+                                    <div class="highlight-badge highlight-badge--ok">✓</div>
+                                    <div class="highlight-text">
+                                        <h4 class="green">All Systems normal</h4>
+                                        <p>All stations online within normal ranges.</p>
+                                    </div>
+                                </div>
+                                <span class="highlight-time">10:20 AM</span>
+                            </div>
+                            <div class="highlight-row">
+                                <div class="highlight-left">
+                                    <div class="highlight-badge highlight-badge--img"><img src="../icon/cloud.png" alt="Rain"></div>
+                                    <div class="highlight-text">
+                                        <h4 class="white">Rainfall event recorded</h4>
+                                        <p>0.42 inches cumulative tracked.</p>
+                                    </div>
+                                </div>
+                                <span class="highlight-time">10:20 AM</span>
+                            </div>
+                            <div class="highlight-row">
+                                <div class="highlight-left">
+                                    <div class="highlight-badge highlight-badge--img"><img src="../icon/mingcute_sun-line.png" alt="Solar"></div>
+                                    <div class="highlight-text">
+                                        <h4 class="amber">Solar radiation high</h4>
+                                        <p>Higher than average solar radiance.</p>
+                                    </div>
+                                </div>
+                                <span class="highlight-time">10:20 AM</span>
+                            </div>
+                            <div class="highlight-row">
+                                <div class="highlight-left">
+                                    <div class="highlight-badge highlight-badge--img"><img src="../icon/data.png" alt="Data"></div>
+                                    <div class="highlight-text">
+                                        <h4 class="white">New Data Available</h4>
+                                        <p>Latest sensor batch compiled.</p>
+                                    </div>
+                                </div>
+                                <span class="highlight-time">10:20 AM</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="info-card-btn">View All Updates ›</button>
+                </div>
+
+                <div class="info-card info-card--half">
+                    <div>
+                        <h3>Live Camera</h3>
+                        <div class="camera-thumbnail">
+                            <img src="images/Screenshot 2026-05-30 at 9.43.34 PM 1.png" alt="Live Camera">
+                            <div class="camera-live-tag">Live</div>
+                        </div>
+                        <div class="camera-dots">
+                            <span class="camera-dot camera-dot--active"></span>
+                            <span class="camera-dot camera-dot--inactive"></span>
+                            <span class="camera-dot camera-dot--inactive"></span>
+                        </div>
+                    </div>
+                    <div class="camera-footer">
+                        <div>
+                            <h4>RWS Arbor Station</h4>
+                            <p>Ann Arbor, MI</p>
+                        </div>
+                        <button class="camera-view-btn">View All ›</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- News & Updates -->
+            <section id="news" class="news-section">
+                <div class="news-header">
+                    <div>
+                        <h2>News &amp; Updates</h2>
+                        <p>Latest announcements from the RWS team</p>
+                    </div>
+                </div>
+                <div class="news-grid">
+
+                    <div class="news-card">
+                        <div class="news-card-tag news-tag--update">Update</div>
+                        <h3>New dashboard is up</h3>
+                        <p>We rebuilt the RWS site from scratch. You can now view live sensor readings from all three stations without needing to log in or download anything.</p>
+                        <span class="news-date">June 2026</span>
+                    </div>
+
+                    <div class="news-card">
+                        <div class="news-card-tag news-tag--maintenance">Maintenance</div>
+                        <h3>CS Facility roof sensor went quiet</h3>
+                        <p>The roof station stopped sending data sometime in March 2024. We're still figuring out whether it's a hardware issue or a connection problem with the Pi.</p>
+                        <span class="news-date">March 2024</span>
+                    </div>
+
+                    <div class="news-card">
+                        <div class="news-card-tag news-tag--info">Info</div>
+                        <h3>No more manual file uploads</h3>
+                        <p>The old system required someone to physically download .dat files from the datalogger and upload them by hand. The Pi now handles all of that automatically.</p>
+                        <span class="news-date">May 2026</span>
+                    </div>
+
+                </div>
+            </section>
+
+            <div id="footer-placeholder"></div>
+        </main>
+    </div>
+
+    <!-- Radiation Info Modal -->
+    <div id="rad-info-modal" class="overlay-modal hidden">
+        <div class="rad-modal-card">
+            <div class="modal-header">
+                <h2>What is background radiation?</h2>
+                <button onclick="closeRadiationInfo()" class="modal-close-btn">✕</button>
+            </div>
+
+            <div class="rad-modal-body">
+                <p class="rad-intro">Background radiation is everywhere — it comes from the ground, the air, space, and even the materials buildings are made of. The numbers you see here are completely normal and not harmful.</p>
+
+                <h4 class="rad-section-title">Typical readings in Ann Arbor</h4>
+                <div class="season-grid">
+                    <div class="season-card">
+                        <span class="season-name">Winter</span>
+                        <span class="season-months">Dec – Feb</span>
+                        <div class="range">70 – 140 <span>nSv/h</span></div>
+                        <p class="note">Windows shut, radon builds up inside</p>
+                    </div>
+                    <div class="season-card">
+                        <span class="season-name">Spring</span>
+                        <span class="season-months">Mar – May</span>
+                        <div class="range">60 – 120 <span>nSv/h</span></div>
+                        <p class="note">Buildings start opening up again</p>
+                    </div>
+                    <div class="season-card">
+                        <span class="season-name">Summer</span>
+                        <span class="season-months">Jun – Aug</span>
+                        <div class="range">55 – 110 <span>nSv/h</span></div>
+                        <p class="note">Usually the lowest readings of the year</p>
+                    </div>
+                    <div class="season-card">
+                        <span class="season-name">Fall</span>
+                        <span class="season-months">Sep – Nov</span>
+                        <div class="range">65 – 125 <span>nSv/h</span></div>
+                        <p class="note">Starts climbing as buildings close back up</p>
+                    </div>
+                </div>
+
+                <h4 class="rad-section-title">What the status labels mean</h4>
+                <div class="tier-grid">
+                    <div class="tier-card tier-card--normal">
+                        <div class="tier-dot"></div>
+                        <div class="tier-label">Normal</div>
+                        <div class="tier-sub">within seasonal range</div>
+                    </div>
+                    <div class="tier-card tier-card--monitor">
+                        <div class="tier-dot"></div>
+                        <div class="tier-label">Monitor</div>
+                        <div class="tier-sub">a bit above average</div>
+                    </div>
+                    <div class="tier-card tier-card--elevated">
+                        <div class="tier-dot"></div>
+                        <div class="tier-label">Elevated</div>
+                        <div class="tier-sub">worth keeping an eye on</div>
+                    </div>
+                    <div class="tier-card tier-card--action">
+                        <div class="tier-dot"></div>
+                        <div class="tier-label">Action</div>
+                        <div class="tier-sub">investigate the source</div>
+                    </div>
+                </div>
+
+                <h4 class="rad-section-title">Why does it change?</h4>
+                <div class="rad-explainer">
+                    <div class="rad-explainer-row">
+                        <span class="icon">☁</span>
+                        <span>Cosmic rays hit harder in winter when the atmosphere above is thinner and less shielding.</span>
+                    </div>
+                    <div class="rad-explainer-row">
+                        <span class="icon">⌂</span>
+                        <span>Radon gas seeps up from soil and collects indoors when buildings are sealed in cold weather.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/footer.js"></script>
+    <script src="js/station-manager.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

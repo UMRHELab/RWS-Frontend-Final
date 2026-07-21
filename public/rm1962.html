@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RM 1962 Auxiliary Station - RWS</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="../styles/styles.css">
+    <link rel="stylesheet" href="../styles/sidebar.css">
+    <link rel="stylesheet" href="../styles/rm1962.css">
+    <link rel="stylesheet" href="../styles/footer.css">
+</head>
+<body>
+
+<!--  SIDEBAR  -->
+<aside class="sidebar">
+
+    <div class="sidebar-header">
+        <img src="../icon/rwsbiglogo.png" alt="RWS Logo" class="sidebar-logo-img">
+    </div>
+
+    <nav class="sidebar-nav">
+        <p class="sidebar-section-label">Stations</p>
+
+        <a href="index.html#overview" class="sidebar-link">
+            <img src="../icon/overview.png" alt="Overview" class="sidebar-nav-icon"> Overview
+        </a>
+        <a href="index.html#conditions" class="sidebar-link">
+            <img src="../icon/currentcon.png" alt="Current Conditions" class="sidebar-nav-icon"> Current Conditions
+        </a>
+
+        <div class="sidebar-dropdown">
+            <button onclick="toggleRadiationsMenu()" class="sidebar-dropdown-toggle">
+                <span class="sidebar-dropdown-label">
+                    <img src="../icon/radiation.png" alt="Radiations" class="sidebar-nav-icon"> Radiations
+                </span>
+                <svg id="radiation-chevron" class="sidebar-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </button>
+
+            <div id="radiations-submenu" class="sidebar-submenu">
+                <a href="cs-facility.html" class="sidebar-station-link inactive">
+                    <span>CS Facility Aux Station</span>
+                    <img src="../icon/online.png" alt="Online" class="sidebar-station-icon">
+                </a>
+                <a href="basement.html" class="sidebar-station-link inactive">
+                    <span>Basement Aux Station</span>
+                    <img src="../icon/online.png" alt="Online" class="sidebar-station-icon">
+                </a>
+                <a href="rm1962.html" class="sidebar-station-link active">
+                    <span>Room 1962 Aux Station</span>
+                    <img src="../icon/online.png" alt="Online" class="sidebar-station-icon">
+                </a>
+            </div>
+        </div>
+
+        <a href="index.html#measures" class="sidebar-link">
+            <img src="../icon/measure.png" alt="What we measure" class="sidebar-nav-icon"> What we measure
+        </a>
+        <a href="index.html#news" class="sidebar-link">
+            <img src="../icon/news.png" alt="News & Updates" class="sidebar-nav-icon"> News &amp; Updates
+        </a>
+        <a href="index.html#about" class="sidebar-link">
+            <img src="../icon/about.png" alt="About RWS" class="sidebar-nav-icon"> About RWS
+        </a>
+    </nav>
+
+</aside>
+
+
+<!--  MAIN CONTENT  -->
+<div class="main-viewport">
+
+    <header class="global-header">
+        <div class="header-left">
+            <span class="header-scope-label">Public Environmental Observatory</span>
+            <div class="network-badge">
+                <span class="network-ping-dot"></span>
+                Live Network Data
+            </div>
+            <span id="top-bar-clock" class="live-clock">--:--:--</span>
+        </div>
+        <div class="header-right">
+            <div class="local-weather-pill">
+                <span>📍 Ann Arbor, MI</span>
+                <span class="separator"></span>
+                <span class="temp-highlight" id="nav-temp">71°F</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="workspace-container">
+
+        <!-- Hero Banner -->
+        <div class="station-hero-banner rm1962-hero">
+            <div class="hero-identity-block">
+
+                <div class="hero-weather-summary">
+                    <svg class="hero-sun-svg" viewBox="0 0 52 52">
+                        <g class="sun-rays">
+                            <line class="sun-ray" x1="26" y1="2"  x2="26" y2="10"/>
+                            <line class="sun-ray" x1="26" y1="42" x2="26" y2="50"/>
+                            <line class="sun-ray" x1="2"  y1="26" x2="10" y2="26"/>
+                            <line class="sun-ray" x1="42" y1="26" x2="50" y2="26"/>
+                            <line class="sun-ray" x1="8.1"  y1="8.1"  x2="13.8" y2="13.8"/>
+                            <line class="sun-ray" x1="38.2" y1="38.2" x2="43.9" y2="43.9"/>
+                            <line class="sun-ray" x1="43.9" y1="8.1"  x2="38.2" y2="13.8"/>
+                            <line class="sun-ray" x1="13.8" y1="38.2" x2="8.1"  y2="43.9"/>
+                        </g>
+                        <circle class="sun-core" cx="26" cy="26" r="10"/>
+                    </svg>
+                    <div>
+                        <div class="hero-temp-readout" id="weather-temp">71</div>
+                        <div class="hero-condition-txt">Controlled · Feels like <span id="weather-feels">71</span></div>
+                        <div class="hero-extremes-range">
+                            <span>↑ <span id="weather-hi">74 F</span></span>
+                            <span>↓ <span id="weather-lo">62 F</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hero-meta-titles">
+                    <h1>RM 1962 Auxiliary Station</h1>
+                    <p class="subtitle">Indoor Main Lab · Ionizing Radiation &amp; Climate Analysis</p>
+                    <p class="caption">University of Michigan — internal safety diagnostics &amp; nuclear baseline telemetry.</p>
+                </div>
+
+            </div>
+            <div class="hero-action-block">
+                <button onclick="window.location.href='index.html'" class="back-btn">← Back to Dashboard</button>
+                <span class="banner-date-stamp" id="greeting-date">—</span>
+            </div>
+        </div>
+
+
+        <!-- Data Grid -->
+        <div class="workspace-grid">
+
+            <!-- Left Column: Charts -->
+            <div class="primary-data-column">
+
+                <div class="control-strip">
+                    <div>
+                        <h2>Sensor Data Logs</h2>
+                        <p>Live from <code class="sensor-code">sensor_rm1962</code></p>
+                    </div>
+                    <button onclick="downloadAllCombinedCSV()" class="export-btn">Export CSV</button>
+                </div>
+
+                <!-- Indoor Temperature -->
+                <div class="glass">
+                    <div class="sensor-card-header">
+                        <h3 class="sensor-title">
+                            <img src="../icon/indoortemp.png" alt=""> Indoor Temperature
+                            <code class="sensor-code">indoor_temp</code>
+                        </h3>
+                        <div class="sensor-avg-row">
+                            <span class="sensor-avg-text">Avg: <span id="avg-temp" class="avg-temp-val">—</span> °F</span>
+                            <button onclick="openReportPopup('temperature')" class="sensor-view-btn">View Report</button>
+                        </div>
+                    </div>
+                    <div class="chart-height-wrapper">
+                        <canvas id="tempChart"></canvas>
+                    </div>
+                    <p class="sensor-note">Dashed line = rolling session average</p>
+                </div>
+
+                <!-- Indoor Humidity -->
+                <div class="glass">
+                    <div class="sensor-card-header">
+                        <h3 class="sensor-title">
+                            <img src="../icon/indoorhumidity.png" alt=""> Indoor Humidity
+                            <code class="sensor-code">indoor_humidity</code>
+                        </h3>
+                        <div class="sensor-avg-row">
+                            <span class="sensor-avg-text">Avg: <span id="avg-humidity" class="avg-humidity-val">—</span> %</span>
+                            <button onclick="openReportPopup('humidity')" class="sensor-view-btn">View Report</button>
+                        </div>
+                    </div>
+                    <div class="chart-height-wrapper">
+                        <canvas id="humidityChart"></canvas>
+                    </div>
+                    <p class="sensor-note">Dashed line = rolling session average</p>
+                </div>
+
+                <!-- Ambient Radiation -->
+                <div class="glass">
+                    <div class="sensor-card-header">
+                        <h3 class="sensor-title">
+                            <img src="../icon/HERO/boxicons_radiation.png" alt=""> Ambient Radiation
+                            <code class="sensor-code">radon_level_nsv</code>
+                        </h3>
+                        <div class="sensor-avg-row">
+                            <span class="sensor-avg-text">Avg: <span id="avg-radiation" class="avg-radiation-val">—</span> nSv/h</span>
+                            <button onclick="openReportPopup('radiation')" class="sensor-view-btn">View Report</button>
+                        </div>
+                    </div>
+                    <div class="chart-height-wrapper">
+                        <canvas id="radiationChart"></canvas>
+                    </div>
+                    <p class="sensor-note">Dashed line = rolling session average · Normal range 50–150 nSv/h</p>
+                </div>
+
+                <!-- Air Pressure -->
+                <div class="glass">
+                    <div class="sensor-card-header">
+                        <h3 class="sensor-title">
+                            <img src="../icon/airpressure.png" alt=""> Air Pressure
+                            <code class="sensor-code">indoor_pressure</code>
+                        </h3>
+                        <div class="sensor-avg-row">
+                            <span class="sensor-avg-text">Avg: <span id="avg-pressure" class="avg-pressure-val">—</span> hPa</span>
+                            <button onclick="openReportPopup('pressure')" class="sensor-view-btn">View Report</button>
+                        </div>
+                    </div>
+                    <div class="chart-height-wrapper">
+                        <canvas id="pressureChart"></canvas>
+                    </div>
+                    <p class="sensor-note">Dashed line = rolling session average</p>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Conditions + Info -->
+            <div class="sidebar-data-column">
+
+                <div class="readout-card">
+                    <h3 class="section-header">Current Conditions</h3>
+
+                    <div class="readout-item">
+                        <div class="readout-value val-temp" id="current-temp">--</div>
+                        <div class="readout-caption">°F · Indoor Temp</div>
+                    </div>
+
+                    <div class="readout-divider"></div>
+
+                    <div class="readout-item">
+                        <div class="readout-value val-humidity" id="current-humidity">--</div>
+                        <div class="readout-caption">% · Humidity</div>
+                    </div>
+
+                    <div class="readout-divider"></div>
+
+                    <div class="readout-item">
+                        <div class="readout-value val-radiation" id="current-radiation">--</div>
+                        <div class="readout-caption">nSv/h · Radiation</div>
+                    </div>
+
+                    <div class="readout-divider"></div>
+
+                    <div class="readout-item">
+                        <div class="readout-value val-pressure" id="current-pressure">--</div>
+                        <div class="readout-caption">hPa · Air Pressure</div>
+                    </div>
+                </div>
+
+                <div class="station-info-card">
+                    <h3>Station Info</h3>
+                    <div class="info-row">
+                        <span class="info-label">DB Table</span>
+                        <code class="info-value-gold">sensor_rm1962</code>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Location</span>
+                        <span class="info-value">Room 1962, Indoor</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Poll Rate</span>
+                        <span class="info-value">5s</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Instruments</span>
+                        <span class="info-value">BME680, DIYgm</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Status</span>
+                        <span class="info-value-online">● Online</span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+</div>
+
+
+<!--  REPORT MODAL  -->
+<div id="report-modal" class="modal-backdrop hidden">
+    <div class="pdf-window-frame">
+
+        <div class="pdf-toolbar">
+            <span class="pdf-filename">MRWS_Data_Export_Preview.pdf</span>
+            <div class="pdf-toolbar-actions">
+                <button onclick="window.print()" class="print-btn">Print</button>
+                <button onclick="closeReportPopup()" class="close-modal-btn">✕</button>
+            </div>
+        </div>
+
+        <div class="pdf-document-body">
+
+            <div class="pdf-header-strip">
+                <div>
+                    <h2 id="modal-metric-title">—</h2>
+                    <p>RM 1962 Auxiliary Station · Climate &amp; Radiation Analytics</p>
+                </div>
+                <div class="pdf-header-meta-right">
+                    <div class="pdf-page-counter">Page 1 of 1</div>
+                    <div class="pdf-generated-date" id="modal-generation-date">—</div>
+                </div>
+            </div>
+
+            <div class="filter-bar">
+                <span class="filter-bar-label">Filter by time</span>
+                <div class="filter-group">
+                    <label class="filter-input-label">From</label>
+                    <input type="time" id="filter-from" class="filter-input">
+                </div>
+                <div class="filter-group">
+                    <label class="filter-input-label">To</label>
+                    <input type="time" id="filter-to" class="filter-input">
+                </div>
+                <button onclick="applyTimeFilter()" class="filter-apply-btn">Apply</button>
+                <button onclick="clearTimeFilter()" class="filter-clear-btn">Clear</button>
+            </div>
+
+            <div class="pdf-stats-row">
+                <div class="pdf-stat-card">
+                    <span class="label">Current</span>
+                    <div class="value" id="modal-stat-current">--</div>
+                </div>
+                <div class="pdf-stat-card">
+                    <span class="label">Min</span>
+                    <div class="value" id="modal-stat-min">--</div>
+                </div>
+                <div class="pdf-stat-card">
+                    <span class="label">Max</span>
+                    <div class="value" id="modal-stat-max">--</div>
+                </div>
+                <div class="pdf-stat-card">
+                    <span class="label">Average</span>
+                    <div class="value" id="modal-stat-avg">--</div>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="pdf-table-title">
+                    <span>Historical Readings Ledger</span>
+                    <span class="subtitle">Interval: 5s polling</span>
+                </h4>
+                <div class="pdf-table-wrapper">
+                    <table class="pdf-data-table">
+                        <thead>
+                            <tr>
+                                <th class="col-mono">#</th>
+                                <th>Date &amp; Time</th>
+                                <th class="col-value-right">Value</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modal-table-rows"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<script src="js/footer.js"></script>
+<script src="js/station-manager.js"></script>
+
+</body>
+</html>

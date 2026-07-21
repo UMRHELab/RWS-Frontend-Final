@@ -1,0 +1,6 @@
+/* rm1962-specific hero background */
+.rm1962-hero {
+    background-image: linear-gradient(rgba(10,16,32,0.75), rgba(10,16,32,0.85)), url('../public/images/ners_indoor.jpg');
+    background-size: cover;
+    background-position: center;
+}
