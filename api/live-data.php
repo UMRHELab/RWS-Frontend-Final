@@ -1,6 +1,6 @@
 <?php
 header('Content-Type: application/json'); // JSON response
-// CORS: allow the dashboard JS to call this file from the browser without being blocked.
+// Enable CORS for dashboard API requests.
 header('Access-Control-Allow-Origin: *');
 
 // Database connection: webapps2 / rws_data (RWSLite_data imported here).
@@ -10,8 +10,9 @@ $DB_NAME = 'rws_data';
 $DB_USER = 'rws_data';   
 $DB_PASS = 'Im Radioactive#1';  
 
-// The test DB is a single combined table (no per-station tables), so the
-// ?station= param is accepted but every station reads the same latest row.
+// The test database uses one shared table instead of separate station tables.
+// The station parameter is kept for compatibility, but all stations currently
+// return the same latest reading.
 $station = $_GET['station'] ?? null;
 
 try {
@@ -24,22 +25,16 @@ try {
         [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
     );
 
-    // Get the latest reading from the RWSLite_data table and rename the database
-    // fields to match the names expected by the dashboard JavaScript.
+    // Get the latest RWSLite_data reading and map the database fields
+    // to the names used by the dashboard.
     //
-    // TEMPERATURE UNITS:
-    // The Pi sensors store temperature values in Celsius, but the dashboard
-    // displays Fahrenheit. The conversion is handled here (C * 9/5 + 32).
-    // If the displayed values look incorrect (for example, 22 instead of 72),
-    // check whether the database is already storing Fahrenheit and remove this
-    // conversion if needed.
+    // Temperature values from the Pi sensors are stored in Celsius and
+    // converted to Fahrenheit here for display. If the readings look off,
+    // check whether the database values are already in Fahrenheit.
     //
-    // RADIATION VS RADON:
-    // The database contains both radiation and radon measurements.
-    // geiger_cpm represents gamma radiation counts and is used for the
-    // "Radiation" chart, while radon_level (pCi/L) is used for radon displays.
-    // radon_level is also mapped to radon_pci_l for the homepage Radiation card,
-    // which uses EPA radon threshold values.
+    // The table stores both radiation and radon data. geiger_cpm is used
+    // for the Radiation chart, while radon_level (pCi/L) is used for the
+    // radon displays and the homepage radiation card.
     $stmt = $pdo->query("
         SELECT
             id,
@@ -72,9 +67,8 @@ try {
     echo json_encode(['data' => $row ?: null]);
 
 } catch (PDOException $e) {
-    // Return a 500 error for connection or query failures.
-    // The dashboard will use fallback data, while the error message in the
-    // live-data.php response helps with debugging.
+    // Return errors to trigger dashboard 
+    // fallback data and help with debugging.
     http_response_code(500);
     echo json_encode(['error' => $e->getMessage()]);
 }
