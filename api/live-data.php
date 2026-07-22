@@ -1,18 +1,12 @@
 <?php
 header('Content-Type: application/json'); // JSON response
-// CORS: allow the dashboard JS to call this file from the browser without being blocked.
 header('Access-Control-Allow-Origin: *');
 
-// ---------------------------------------------------------------------------
-// MiServer (webapps3) connection details.
-// NOTE: webapps3-db is only reachable if THIS php file is hosted on the
-// webapps3 web space. It is NOT reachable from Pantheon. If the dashboard is
-// served from Pantheon, point these at webapps2-db / rws_data instead.
-// ---------------------------------------------------------------------------
-$DB_HOST = 'webapps3-db.miserver.it.umich.edu';
-$DB_NAME = 'rws_data_test';
-$DB_USER = 'rws_data_test';
-$DB_PASS = '7N22Mn5V_y';
+// webapps2 / rws_data connection (reachable from Pantheon).
+$DB_HOST = 'webapps2-db.miserver.it.umich.edu';
+$DB_NAME = 'rws_data';
+$DB_USER = 'rws_data';
+$DB_PASS = 'Im Radioactive#1';
 
 // The test DB is a single combined table (no per-station tables), so the
 // ?station= param is accepted but every station reads the same latest row.
