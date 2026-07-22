@@ -1,3 +1,7 @@
+# NOTE: this is a local testing tool, not part of the live site.
+# the deployed dashboard on Pantheon talks to live-data.php instead.
+# kept around for running the dashboard against the local sqlite db.
+
 from flask import Flask, jsonify, render_template
 import sqlite3
 import os
@@ -49,12 +53,8 @@ def live_data():
     return jsonify({
         "status": "offline",
         "data": {
-            "id": 0, "pi_num": 0, "timestamp": 0.0, 
-            "temp": 0.0, "humidity": 0.0, "pressure": 0.0,
-            "gas": 0.0, "soil_moisture": 0.0, "soil_temperature": 0.0,
-            "wind_speed": 0.0, "wind_direction": 0.0, "rainfall": 0.0,
-            "radon_level": 0.0, "geiger_cpm": 0.0, "UV": 0.0,
-            "lux": 0.0
+            "indoor_temp": 0.0, "indoor_humidity": 0.0, "radon_level": 0.0,
+            "wind_speed": 0.0, "rainfall": 0.0, "lux": 0.0, "soil_temperature": 0.0
         }
     })
 
@@ -64,10 +64,8 @@ def insert_sample():
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute('''
-            INSERT INTO sensor_data (pi_num, timestamp, temp, humidity, pressure,
-            gas, soil_moisture, soil_temperature, wind_speed, wind_direction, rainfall,
-            radon_level, geiger_cpm, UV, lux)
-            VALUES (1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            INSERT INTO sensor_data (pi_num, indoor_temp, indoor_humidity, radon_level, wind_speed, rainfall, lux, soil_temperature)
+            VALUES (1, 71.0, 42.5, 82.0, 5.2, 0.0, 80.0, 55.0)
         ''')
         conn.commit()
         conn.close()

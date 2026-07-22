@@ -59,7 +59,6 @@
 
             <a href="index.html#measures" class="sidebar-link"><img src="../icon/measure.png" alt="What we measure" class="sidebar-nav-icon"> What we measure</a>
             <a href="index.html#news"     class="sidebar-link"><img src="../icon/news.png" alt="News & Updates" class="sidebar-nav-icon"> News &amp; Updates</a>
-            <a href="index.html#about"    class="sidebar-link"><img src="../icon/about.png" alt="About RWS" class="sidebar-nav-icon"> About RWS</a>
         </nav>
     </aside>
 
@@ -103,12 +102,7 @@
                             <circle cx="26" cy="26" r="10" fill="#ffcb05"/>
                         </svg>
                         <div>
-                            <div class="hero-temp-readout" id="weather-temp">56</div>
-                            <div class="hero-condition-txt">Sunny · Feels like <span id="weather-feels">56</span></div>
-                            <div class="hero-extremes-range">
-                                <span>↑ <span id="weather-hi">71 F</span> High</span>
-                                <span>↓ <span id="weather-lo">55 F</span> Low</span>
-                            </div>
+                            <div class="hero-temp-readout"><span id="weather-temp">56</span><span class="hero-temp-unit">°F</span></div>
                         </div>
                     </div>
                     <div class="hero-meta-titles">
@@ -119,10 +113,10 @@
                 </div>
 
                 <div class="hero-action-block">
-                    <a href="#conditions" class="back-btn" style="text-decoration:none;">
-                        <span class="rad-explain-btn__info-badge" style="width:1rem;height:1rem;border-radius:9999px;border:1px solid #64748b;display:flex;align-items:center;justify-content:center;font-size:9px;color:#cbd5e1;">i</span>
+                    <a href="#conditions" class="back-btn hero-forecast-link">
+                        <span class="rad-explain-btn__info-badge hero-info-badge">i</span>
                         See Full Forecast
-                        <span style="color:#94a3b8;">›</span>
+                        <span class="hero-forecast-arrow">›</span>
                     </a>
                     <span class="banner-date-stamp" id="greeting-date">Thursday, June 25, 2026</span>
                 </div>
@@ -152,12 +146,14 @@
                                     <h3>CS Facility Auxiliary Station</h3>
                                     <p>Roof Level Node Location</p>
                                 </div>
-                                <div class="station-status">
-                                    <span class="station-dot station-dot--roof animate-pulse"></span>
-                                    <span class="station-status-label">NORMAL</span>
-                                </div>
                             </div>
-                            <a href="cs-facility.html" class="station-link-btn station-link-btn--roof">See Full Data →</a>
+                            <div class="station-card-right">
+                                <div class="station-status" id="status-cs-facility">
+                                    <span class="station-dot station-dot--roof animate-pulse"></span>
+                                    <span class="station-status-label">—</span>
+                                </div>
+                                <a href="cs-facility.html" class="station-link-btn station-link-btn--roof">See Full Data →</a>
+                            </div>
                         </div>
 
                         <div class="station-card station-card--indoor">
@@ -166,12 +162,14 @@
                                     <h3>RM 1962 Auxiliary Station</h3>
                                     <p>Indoor Main Lab Level Node</p>
                                 </div>
-                                <div class="station-status">
-                                    <span class="station-dot station-dot--indoor animate-pulse"></span>
-                                    <span class="station-status-label">NORMAL</span>
-                                </div>
                             </div>
-                            <a href="rm1962.html" class="station-link-btn station-link-btn--indoor">See Full Data →</a>
+                            <div class="station-card-right">
+                                <div class="station-status" id="status-rm1962">
+                                    <span class="station-dot station-dot--indoor animate-pulse"></span>
+                                    <span class="station-status-label">—</span>
+                                </div>
+                                <a href="rm1962.html" class="station-link-btn station-link-btn--indoor">See Full Data →</a>
+                            </div>
                         </div>
 
                         <div class="station-card station-card--basement">
@@ -180,12 +178,14 @@
                                     <h3>Basement Aux Station</h3>
                                     <p>Sub-level Core Node Location</p>
                                 </div>
-                                <div class="station-status">
-                                    <span class="station-dot station-dot--basement animate-pulse"></span>
-                                    <span class="station-status-label">NORMAL</span>
-                                </div>
                             </div>
-                            <a href="basement.html" class="station-link-btn station-link-btn--basement">See Full Data →</a>
+                            <div class="station-card-right">
+                                <div class="station-status" id="status-basement">
+                                    <span class="station-dot station-dot--basement animate-pulse"></span>
+                                    <span class="station-status-label">—</span>
+                                </div>
+                                <a href="basement.html" class="station-link-btn station-link-btn--basement">See Full Data →</a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -265,16 +265,16 @@
                         <div class="rad-panel">
                             <div class="rad-panel-top">
                                 <span class="rad-section-title">Radiation Level</span>
-                                <div id="rad-status-text" style="margin-bottom:0.25rem;font-size:1.5rem;font-weight:800;color:#22c55e;">Normal</div>
+                                <div id="rad-status-text" class="rad-status-text">Normal</div>
                                 <div class="rad-value-row">
-                                    <span id="current-rad" class="rad-value-number">82</span>
-                                    <span class="rad-value-unit">nSv/h</span>
+                                    <span id="current-rad" class="rad-value-number">—</span>
+                                    <span class="rad-value-unit">pCi/L</span>
                                 </div>
                                 <p class="rad-range-note" id="rad-range-text">Typical background radiation</p>
                             </div>
 
                             <div id="rad-shield" class="rad-shield-ring">
-                                <svg id="rad-shield-icon" style="color:#22c55e;width:2.5rem;height:2.5rem;" fill="currentColor" viewBox="0 0 24 24">
+                                <svg id="rad-shield-icon" class="rad-shield-icon" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
                                 </svg>
                             </div>
@@ -334,56 +334,17 @@
                             </div>
                         </div>
                     </div>
-                    <button class="info-card-btn">Learn more about what we measure ›</button>
+                    <button class="info-card-btn" onclick="openMeasureInfo()">Learn more about what we measure ›</button>
                 </div>
 
                 <div class="info-card info-card--half">
                     <div>
                         <h3>Recent Highlights</h3>
                         <div class="highlights-list">
-                            <div class="highlight-row">
-                                <div class="highlight-left">
-                                    <div class="highlight-badge highlight-badge--ok">✓</div>
-                                    <div class="highlight-text">
-                                        <h4 class="green">All Systems normal</h4>
-                                        <p>All stations online within normal ranges.</p>
-                                    </div>
-                                </div>
-                                <span class="highlight-time">10:20 AM</span>
-                            </div>
-                            <div class="highlight-row">
-                                <div class="highlight-left">
-                                    <div class="highlight-badge highlight-badge--img"><img src="../icon/cloud.png" alt="Rain"></div>
-                                    <div class="highlight-text">
-                                        <h4 class="white">Rainfall event recorded</h4>
-                                        <p>0.42 inches cumulative tracked.</p>
-                                    </div>
-                                </div>
-                                <span class="highlight-time">10:20 AM</span>
-                            </div>
-                            <div class="highlight-row">
-                                <div class="highlight-left">
-                                    <div class="highlight-badge highlight-badge--img"><img src="../icon/mingcute_sun-line.png" alt="Solar"></div>
-                                    <div class="highlight-text">
-                                        <h4 class="amber">Solar radiation high</h4>
-                                        <p>Higher than average solar radiance.</p>
-                                    </div>
-                                </div>
-                                <span class="highlight-time">10:20 AM</span>
-                            </div>
-                            <div class="highlight-row">
-                                <div class="highlight-left">
-                                    <div class="highlight-badge highlight-badge--img"><img src="../icon/data.png" alt="Data"></div>
-                                    <div class="highlight-text">
-                                        <h4 class="white">New Data Available</h4>
-                                        <p>Latest sensor batch compiled.</p>
-                                    </div>
-                                </div>
-                                <span class="highlight-time">10:20 AM</span>
-                            </div>
+                            <p class="highlights-empty">Loading updates…</p>
                         </div>
                     </div>
-                    <button class="info-card-btn">View All Updates ›</button>
+                    <button class="info-card-btn" onclick="window.open('https://docs.google.com/spreadsheets/d/e/2PACX-1vQjLt42NKFE3yuZuJtxkWRj2fthgy0gpmPTNe_jYKziWHULaKSyapqStR1hn3qHoPigQVprJE1Q3TYY/pubhtml', '_blank')">View All Updates ›</button>
                 </div>
 
                 <div class="info-card info-card--half">
@@ -418,33 +379,50 @@
                     </div>
                 </div>
                 <div class="news-grid">
-
-                    <div class="news-card">
-                        <div class="news-card-tag news-tag--update">Update</div>
-                        <h3>New dashboard is up</h3>
-                        <p>We rebuilt the RWS site from scratch. You can now view live sensor readings from all three stations without needing to log in or download anything.</p>
-                        <span class="news-date">June 2026</span>
-                    </div>
-
-                    <div class="news-card">
-                        <div class="news-card-tag news-tag--maintenance">Maintenance</div>
-                        <h3>CS Facility roof sensor went quiet</h3>
-                        <p>The roof station stopped sending data sometime in March 2024. We're still figuring out whether it's a hardware issue or a connection problem with the Pi.</p>
-                        <span class="news-date">March 2024</span>
-                    </div>
-
-                    <div class="news-card">
-                        <div class="news-card-tag news-tag--info">Info</div>
-                        <h3>No more manual file uploads</h3>
-                        <p>The old system required someone to physically download .dat files from the datalogger and upload them by hand. The Pi now handles all of that automatically.</p>
-                        <span class="news-date">May 2026</span>
-                    </div>
-
+                    <p class="highlights-empty">Loading news…</p>
                 </div>
+                <button class="info-card-btn news-view-all-btn" onclick="window.open('https://docs.google.com/spreadsheets/d/e/2PACX-1vQba-I86uAOYnBP3C7n6SOkHMGKqo72eNM6N4tfpe5WDs-KVBj0WrftIFyNQqcxG1piw7ZwPjsZmMu-/pubhtml', '_blank')">View All News ›</button>
             </section>
 
             <div id="footer-placeholder"></div>
         </main>
+    </div>
+
+    <!-- What We Measure Modal -->
+    <div id="measure-info-modal" class="overlay-modal hidden">
+        <div class="rad-modal-card">
+            <div class="modal-header">
+                <h2>What we measure</h2>
+                <button onclick="closeMeasureInfo()" class="modal-close-btn">✕</button>
+            </div>
+
+            <div class="rad-modal-body">
+                <p class="rad-intro">The RWS network tracks the environment around North Campus with sensors at three stations, from the roof down to the basement. Here's what each group of instruments actually records.</p>
+
+                <div class="measure-modal-grid">
+                    <div class="measure-modal-card">
+                        <img src="images/weather.jpg" alt="Weather instruments">
+                        <h4>Weather</h4>
+                        <p>Air temperature, humidity, and barometric pressure from BME680 sensors, plus wind speed, wind direction, and rainfall from the roof station.</p>
+                    </div>
+                    <div class="measure-modal-card">
+                        <img src="images/radiation.jpg" alt="Radiation detection">
+                        <h4>Radiation</h4>
+                        <p>Background gamma radiation counted by Geiger tubes, reported as counts per minute. Levels here are typical background and vary naturally with weather and seasons.</p>
+                    </div>
+                    <div class="measure-modal-card">
+                        <img src="images/ners_indoor.jpg" alt="Radon monitoring">
+                        <h4>Radon</h4>
+                        <p>Radon concentration in air, measured by RadonEye detectors and a RAD8 monitor in pCi/L. Radon is a naturally occurring radioactive gas that seeps from the ground.</p>
+                    </div>
+                    <div class="measure-modal-card">
+                        <img src="images/soil.png" alt="Soil and solar sensors">
+                        <h4>Soil &amp; Sun</h4>
+                        <p>Soil moisture and soil temperature probes track ground conditions, while a solar radiation sensor measures incoming sunlight intensity.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Radiation Info Modal -->

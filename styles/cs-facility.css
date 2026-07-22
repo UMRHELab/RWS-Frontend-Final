@@ -45,7 +45,7 @@
 .camera-live-badge {
     background-color: #10b981;
     color: #000000;
-    font-size: 0.5625rem;
+    font-size: 0.75rem;
     padding: 0.125rem 0.5rem;
     border-radius: 0.25rem;
     font-weight: 900;
@@ -71,7 +71,7 @@
 }
 
 .camera-note {
-    font-size: 0.625rem;
-    color: #64748b;
+    font-size: 0.75rem;
+    color: #94a3b8;
     margin-top: 0.5rem;
 }

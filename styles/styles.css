@@ -4,6 +4,27 @@
 
 .hidden { display: none !important; }
 
+/* View All News button under the news grid */
+.news-view-all-btn {
+    margin-top: 1.25rem;
+}
+
+/* Empty/loading state for the Recent Highlights box (filled by js/updates-feed.js) */
+.highlights-empty {
+    text-align: center;
+    color: #94a3b8;
+    padding: 1.5rem 0;
+    font-size: 0.875rem;
+}
+
+/* Scale up the whole UI on large monitors */
+@media (min-width: 1920px) {
+    body { zoom: 1.25; }
+}
+@media (min-width: 2560px) {
+    body { zoom: 1.5; }
+}
+
 body {
     background-color: #0c1428; 
     color: #e5e7eb; 
@@ -70,7 +91,7 @@ body {
 }
 
 .branding-meta span {
-    font-size: 10px;
+    font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: #94a3b8;
@@ -84,11 +105,11 @@ body {
 }
 
 .nav-section-title {
-    font-size: 9px;
+    font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #475569;
+    color: #7c8ba1;
     padding: 0 1rem 0.5rem 1rem;
     margin: 0;
 }
@@ -253,7 +274,7 @@ body {
 }
 
 .header-scope-label {
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.05em;
     text-transform: uppercase;
@@ -286,7 +307,7 @@ body {
 .live-clock {
     font-size: 0.75rem;
     font-family: monospace;
-    color: #64748b;
+    color: #94a3b8;
 }
 
 .local-weather-pill {
@@ -392,7 +413,7 @@ body {
     display: flex;
     gap: 0.75rem;
     margin-top: 0.25rem;
-    font-size: 10px;
+    font-size: 12px;
     font-family: monospace;
     color: #94a3b8;
 }
@@ -415,7 +436,7 @@ body {
 }
 
 .hero-meta-titles .caption {
-    font-size: 10px;
+    font-size: 12px;
     color: #cbd5e1;
     margin-top: 0.25rem;
     font-weight: 500;
@@ -450,7 +471,7 @@ body {
 }
 
 .banner-date-stamp {
-    font-size: 10px;
+    font-size: 12px;
     font-family: monospace;
     font-weight: 600;
     color: #cbd5e1;
@@ -489,10 +510,18 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
     background-color: rgba(15, 23, 42, 0.4);
     padding: 1rem;
     border: 1px solid #1e293b;
     border-radius: 1rem;
+}
+
+/* let the text column shrink/wrap instead of pushing the button out */
+.control-strip > div {
+    min-width: 0;
+    flex: 1 1 auto;
 }
 
 .control-strip h2 {
@@ -521,6 +550,8 @@ body {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    flex-shrink: 0;
+    white-space: nowrap;
     box-shadow: 0 10px 15px -3px rgba(5, 150, 105, 0.1);
 }
 
@@ -567,7 +598,7 @@ body {
 }
 
 .chart-actions-panel .panel-title {
-    font-size: 10px;
+    font-size: 12px;
     letter-spacing: 0.05em;
     text-transform: uppercase;
     color: #94a3b8;
@@ -577,7 +608,7 @@ body {
 
 .chart-actions-panel .panel-desc {
     font-size: 0.75rem;
-    color: #64748b;
+    color: #94a3b8;
     margin-top: 0.25rem;
     line-height: 1.5;
 }
@@ -671,7 +702,7 @@ body {
 .live-feed-indicator {
     background-color: #10b981;
     color: #000000;
-    font-size: 9px;
+    font-size: 11px;
     padding: 0.125rem 0.5rem;
     border-radius: 0.25rem;
     font-weight: 900;
@@ -769,7 +800,7 @@ body {
 .pdf-filename {
     font-size: 0.75rem;
     font-weight: 700;
-    color: #475569;
+    color: #7c8ba1;
     font-family: monospace;
     letter-spacing: 0.05em;
 }
@@ -805,7 +836,7 @@ body {
     border-radius: 9999px;
     border: none;
     background: transparent;
-    color: #64748b;
+    color: #94a3b8;
     font-weight: 700;
     cursor: pointer;
     transition: background-color 0.2s;
@@ -844,7 +875,7 @@ body {
 .pdf-header-strip p {
     font-size: 0.75rem;
     font-weight: 500;
-    color: #64748b;
+    color: #94a3b8;
     margin: 0.125rem 0 0 0;
 }
 
@@ -857,20 +888,20 @@ body {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #475569;
+    color: #7c8ba1;
     font-family: monospace;
 }
 
 .pdf-generated-date {
     font-size: 11px;
     font-weight: 600;
-    color: #64748b;
+    color: #94a3b8;
     margin-top: 0.125rem;
 }
 
 .pdf-abstract-text {
     font-size: 0.75rem;
-    color: #64748b;
+    color: #94a3b8;
     line-height: 1.625;
     margin: 0 0 1.5rem 0;
 }
@@ -891,10 +922,10 @@ body {
 }
 
 .pdf-stat-card .label {
-    font-size: 9px;
+    font-size: 11px;
     text-transform: uppercase;
     font-weight: 700;
-    color: #475569;
+    color: #7c8ba1;
     letter-spacing: 0.05em;
     display: block;
 }
@@ -919,9 +950,9 @@ body {
 }
 
 .pdf-table-title span.subtitle {
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 600;
-    color: #475569;
+    color: #7c8ba1;
     text-transform: none;
 }
 
@@ -969,7 +1000,7 @@ body {
     margin-top: 2.5rem;
     padding-top: 1rem;
     border-top: 1px solid rgba(255, 203, 5, 0.15);
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 500;
     color: rgba(255, 203, 5, 0.4);
     display: flex;
@@ -1006,6 +1037,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
     margin-bottom: 0.25rem;
 }
 
@@ -1015,8 +1048,11 @@ body {
     color: #ffffff;
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 0.5rem;
     margin: 0;
+    min-width: 0;
+    flex: 1 1 auto;
 }
 
 .sensor-title img {
@@ -1026,7 +1062,7 @@ body {
 }
 
 .sensor-code {
-    font-size: 0.625rem;
+    font-size: 0.75rem;
     color: #ffcb05;
     font-family: monospace;
     background-color: #0f172a;
@@ -1038,11 +1074,12 @@ body {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    flex-shrink: 0;
 }
 
 .sensor-avg-text {
-    font-size: 0.625rem;
-    color: #64748b;
+    font-size: 0.75rem;
+    color: #94a3b8;
 }
 
 .avg-radon-val    { color: #fb7185;  font-family: monospace; }
@@ -1057,7 +1094,7 @@ body {
 .avg-soiltemp-val { color: #fcd34d;  font-family: monospace; }
 
 .sensor-view-btn {
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     padding: 0.375rem 0.75rem;
     background-color: #0a1020;
     border: 1px solid #334155;
@@ -1065,6 +1102,7 @@ body {
     border-radius: 0.5rem;
     font-weight: 500;
     cursor: pointer;
+    white-space: nowrap;
     transition: background-color 0.15s;
 }
 
@@ -1078,8 +1116,8 @@ body {
 }
 
 .sensor-note {
-    font-size: 0.625rem;
-    color: #475569;
+    font-size: 0.75rem;
+    color: #7c8ba1;
     margin-top: 0.25rem;
 }
 
@@ -1100,7 +1138,7 @@ body {
 .info-row {
     display: flex;
     justify-content: space-between;
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     margin-bottom: 0.5rem;
 }
 
@@ -1123,11 +1161,11 @@ body {
 }
 
 .filter-bar-label {
-    font-size: 0.625rem;
+    font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #475569;
+    color: #7c8ba1;
 }
 
 .filter-group {
@@ -1137,8 +1175,8 @@ body {
 }
 
 .filter-input-label {
-    font-size: 0.625rem;
-    color: #64748b;
+    font-size: 0.75rem;
+    color: #94a3b8;
     font-weight: 600;
 }
 
@@ -1152,13 +1190,13 @@ body {
     outline: none;
 }
 
-.filter-input:focus { border-color: #475569; }
+.filter-input:focus { border-color: #7c8ba1; }
 
 .filter-apply-btn {
     padding: 0.25rem 0.75rem;
     background-color: #ffcb05;
     color: #0c1428;
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     font-weight: 700;
     border: none;
     border-radius: 0.5rem;
@@ -1171,8 +1209,8 @@ body {
 .filter-clear-btn {
     padding: 0.25rem 0.75rem;
     background-color: transparent;
-    color: #64748b;
-    font-size: 0.6875rem;
+    color: #94a3b8;
+    font-size: 0.75rem;
     font-weight: 600;
     border: 1px solid #334155;
     border-radius: 0.5rem;
@@ -1211,7 +1249,7 @@ global-footer .footer-content {
     width: 100%;
     margin: 0 auto;
     font-size: 0.75rem;
-    color: #64748b;
+    color: #94a3b8;
 }
 
 global-footer a {
@@ -1222,4 +1260,258 @@ global-footer a {
 
 global-footer a:hover {
     color: #ffcb05; /* UMich Maize highlight on hover */
+}
+
+/* ==========================================================================
+   MOBILE / SMALL SCREEN LAYOUT (was mobile.css)
+   ========================================================================== */
+/* hamburger button + backdrop exist on every screen size, but only show on mobile */
+.mobile-nav-toggle,
+.mobile-nav-backdrop {
+    display: none;
+}
+
+@media (max-width: 820px) {
+
+    body {
+        display: block;
+    }
+
+    /* prevent grid/flex children from forcing horizontal overflow */
+    * {
+        min-width: 0;
+    }
+
+    /* --- Sidebar becomes an off-canvas drawer ---
+       z-index needs !important: sidebar.css loads later and would push the
+       drawer below the backdrop, making the menu unclickable */
+    .sidebar,
+    .app-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 16rem;
+        z-index: 60 !important;
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+        overflow-y: auto;
+    }
+
+    body.nav-open .sidebar,
+    body.nav-open .app-sidebar {
+        transform: translateX(0);
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+    }
+
+    /* --- Hamburger button --- */
+    .mobile-nav-toggle {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 4px;
+        width: 2.25rem;
+        height: 2.25rem;
+        padding: 0.4rem;
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid rgba(51, 65, 85, 0.6);
+        border-radius: 0.5rem;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    .mobile-nav-toggle span {
+        display: block;
+        height: 2px;
+        width: 100%;
+        background: #ffcb05;
+        border-radius: 2px;
+    }
+
+    /* --- Backdrop behind the open drawer --- */
+    body.nav-open .mobile-nav-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 50;
+    }
+
+    /* --- Main content takes the full width --- */
+    .main-viewport {
+        padding-left: 0;
+    }
+
+    .workspace-container {
+        padding: 1rem;
+    }
+
+    /* --- Top header: allow wrapping instead of squishing --- */
+    .global-header {
+        height: auto;
+        min-height: 3.5rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+    }
+
+    .header-left {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .header-scope-label {
+        display: none; /* long label, not worth the space on a phone */
+    }
+
+    /* --- Hero / greeting banner stacks vertically --- */
+    .station-hero-banner {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1.25rem;
+        padding: 1.25rem;
+    }
+
+    .hero-identity-block {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .hero-action-block {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    /* --- All multi-column grids collapse to one column ---
+       !important because the desktop rules can have higher specificity,
+       and losing that fight leaves cards 1/12th wide */
+    .workspace-grid,
+    .chart-layout-box,
+    .map-grid,
+    .env-grid,
+    .info-cards-grid,
+    .measure-grid,
+    .tier-grid,
+    .news-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .pdf-stats-row,
+    .season-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    /* station cards go back to stacked on small screens */
+    .station-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .station-card-right {
+        align-items: stretch;
+    }
+
+    .station-link-btn {
+        display: block;
+    }
+
+    /* environment overview: sparkline charts stack in a single column */
+    .sparkline-area {
+        grid-template-columns: 1fr !important;
+        grid-column: auto / span 1 !important;
+    }
+
+    /* grid items placed with explicit column spans (12-col system) */
+    .workspace-grid > *,
+    .map-grid > *,
+    .env-grid > *,
+    .chart-layout-box > * {
+        grid-column: auto / span 1 !important;
+    }
+
+    /* --- Footer stacks into one column, kept compact so it doesn't
+       swallow the whole screen ---
+       !important because footer.css loads after this file and would win otherwise */
+    .site-footer {
+        padding: 1.5rem 0 !important;
+    }
+
+    /* two columns: General Users and Researchers sit side by side,
+       brand and contact get the full width */
+    .footer-inner {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 1rem !important;
+        padding: 0 1.25rem !important;
+    }
+
+    .footer-col {
+        grid-column: auto / span 1 !important;
+    }
+
+    .footer-brand,
+    .footer-col-wide {
+        grid-column: 1 / -1 !important;
+    }
+
+    .footer-brand-logo {
+        margin-bottom: 0.4rem !important;
+    }
+
+    .footer-heading {
+        margin: 0 0 0.35rem !important;
+    }
+
+    .footer-links li {
+        margin-bottom: 0.2rem !important;
+    }
+
+    /* --- General breathing room --- */
+    .glass {
+        padding: 1.25rem;
+        border-radius: 1rem;
+    }
+}
+
+/* "Last reading" stamp on station pages -- makes stale data obvious */
+.last-reading-stamp {
+    margin: 0.35rem 0 0;
+    font-size: 0.75rem;
+    font-family: monospace;
+    color: #fbbf24;
+}
+
+/* °F unit next to the big temperature readout in the weather card */
+.hero-temp-unit {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #94a3b8;
+    margin-left: 0.25rem;
+}
+
+/* footer: the 12 column layout needs more room than mid-size windows have,
+   so between phone width and ~1150px it drops to two columns instead */
+@media (min-width: 821px) and (max-width: 1150px) {
+    /* info cards (measure / highlights / camera) stack full width here,
+       three columns only fit on real desktops */
+    .info-cards-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .info-cards-grid > * {
+        grid-column: auto / span 1 !important;
+    }
+
+    .footer-inner {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 2rem 2.5rem !important;
+    }
+
+    .footer-brand,
+    .footer-col,
+    .footer-col-wide {
+        grid-column: auto / span 1 !important;
+    }
 }

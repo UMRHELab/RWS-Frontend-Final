@@ -1,3 +1,128 @@
+
+
+// pulls dev updates and news from our shared google sheets, so anyone on
+// the team can post by adding a row. the updates sheet feeds the Recent
+// Highlights box and the news sheet feeds the News & Updates section.
+const RWSUpdates = (() => {
+    const UPDATES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQjLt42NKFE3yuZuJtxkWRj2fthgy0gpmPTNe_jYKziWHULaKSyapqStR1hn3qHoPigQVprJE1Q3TYY/pub?gid=0&single=true&output=csv';
+    const NEWS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQba-I86uAOYnBP3C7n6SOkHMGKqo72eNM6N4tfpe5WDs-KVBj0WrftIFyNQqcxG1piw7ZwPjsZmMu-/pub?gid=0&single=true&output=csv';
+
+    function splitCSVLine(line) {
+        const cols = [];
+        let cur = '', inQuotes = false;
+        for (const ch of line) {
+            if (ch === '"') { inQuotes = !inQuotes; }
+            else if (ch === ',' && !inQuotes) { cols.push(cur); cur = ''; }
+            else { cur += ch; }
+        }
+        cols.push(cur);
+        return cols.map(c => c.trim());
+    }
+
+    // rows come back keyed by header name, so sheet column order doesn't matter
+    function parseCSV(text) {
+        const lines = text.trim().split(/\r?\n/).filter(l => l.trim() !== '');
+        if (lines.length < 2) return []; // header only or empty
+        const headers = splitCSVLine(lines[0]).map(h => h.toLowerCase());
+        return lines.slice(1).map(line => {
+            const c = splitCSVLine(line);
+            const row = {};
+            headers.forEach((h, i) => { row[h] = c[i] || ''; });
+            // sheets tables use Title/Status/Notes, accept those too
+            row.description = row.description || row.notes || '';
+            row.tag = row.tag || row.status || '';
+            return row;
+        }).filter(r => r.title);
+    }
+
+    async function fetchRows(url) {
+        try {
+            const r = await fetch(url, { cache: 'no-store' });
+            if (!r.ok) return [];
+            const rows = parseCSV(await r.text());
+            // newest first, works with both 2026-07-03 and 7/3/2026 dates
+            const t = d => { const p = Date.parse(d); return isNaN(p) ? 0 : p; };
+            rows.sort((a, b) => t(b.date) - t(a.date));
+            return rows;
+        } catch {
+            return [];
+        }
+    }
+
+    // icons have to be plain filenames from the icon folder, nothing else
+    function safeIcon(icon) {
+        return /^[\w.-]+\.(png|svg|jpg|jpeg|gif)$/i.test(icon || '') ? icon : '';
+    }
+
+    function esc(s) {
+        return String(s || '').replace(/[&<>"']/g, m =>
+            ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+    }
+
+    return {
+        fetchUpdates: () => fetchRows(UPDATES_CSV_URL),
+        fetchNews: () => fetchRows(NEWS_CSV_URL),
+        safeIcon, esc
+    };
+})();
+
+// fill the Recent Highlights box if this page has one
+document.addEventListener('DOMContentLoaded', () => {
+    const box = document.querySelector('.highlights-list');
+    if (!box) return;
+
+    RWSUpdates.fetchUpdates().then(updates => {
+        if (updates.length === 0) {
+            box.innerHTML = '<p class="highlights-empty">No recent updates</p>';
+            return;
+        }
+        box.innerHTML = updates.slice(0, 4).map(u => {
+            const icon = RWSUpdates.safeIcon(u.icon);
+            const badge = icon
+                ? `<div class="highlight-badge highlight-badge--img"><img src="../icon/${icon}" alt="" onerror="this.parentElement.innerHTML='✓';this.parentElement.className='highlight-badge highlight-badge--ok'"></div>`
+                : `<div class="highlight-badge highlight-badge--ok">✓</div>`;
+            return `
+            <div class="highlight-row">
+                <div class="highlight-left">
+                    ${badge}
+                    <div class="highlight-text">
+                        <h4 class="white">${RWSUpdates.esc(u.title)}</h4>
+                        <p>${RWSUpdates.esc(u.description)}</p>
+                    </div>
+                </div>
+                <span class="highlight-time">${RWSUpdates.esc(u.date)}</span>
+            </div>`;
+        }).join('');
+    });
+});
+
+// fill the News & Updates section if this page has one
+document.addEventListener('DOMContentLoaded', () => {
+    const grid = document.querySelector('.news-grid');
+    if (!grid) return;
+
+    const TAGS = { update: 'Update', maintenance: 'Maintenance', info: 'Info' };
+
+    RWSUpdates.fetchNews().then(news => {
+        if (news.length === 0) {
+            grid.innerHTML = '<p class="highlights-empty">No news yet</p>';
+            return;
+        }
+        grid.innerHTML = news.map(n => {
+            const tagKey = (n.tag || '').toLowerCase();
+            const tag = TAGS[tagKey] ? tagKey : 'info';
+            return `
+            <div class="news-card">
+                <div class="news-card-tag news-tag--${tag}">${TAGS[tag]}</div>
+                <h3>${RWSUpdates.esc(n.title)}</h3>
+                <p>${RWSUpdates.esc(n.description)}</p>
+                <span class="news-date">${RWSUpdates.esc(n.date)}</span>
+            </div>`;
+        }).join('');
+    });
+});
+
+
 // updates the clock in the top bar every second
 setInterval(() => {
     const el = document.getElementById('top-bar-clock');
@@ -122,6 +247,11 @@ function buildChart(key) {
     const ctx = document.getElementById('chart-' + key);
     if (!ctx) return;
 
+    // canvases are invisible to screen readers, so describe each chart.
+    // the current value also appears as plain text next to the chart.
+    ctx.setAttribute('role', 'img');
+    ctx.setAttribute('aria-label', 'Line chart of recent ' + key + ' readings');
+
     // try to attach a dashed baseline annotation if the plugin is loaded
     const annotationPlugin = {};
     const annotationObj = window['chartjs-plugin-annotation'] || window.ChartAnnotation;
@@ -197,8 +327,8 @@ function buildChart(key) {
                             return isLast ? 'Now · ' + label : label;
                         }
                     },
-                    // autoSkip won't always land on the very last point -- force it to
-                    // stay in the tick list so "Now" is never skipped
+                    // autoSkip can drop the last point, force it to stay
+                    // so "Now" never disappears
                     afterBuildTicks: (axis) => {
                         const lastIndex = axis.getLabels().length - 1;
                         if (lastIndex >= 0 && !axis.ticks.some(t => t.value === lastIndex)) {
@@ -220,6 +350,70 @@ function initAllCharts() {
     Object.keys(CHARTS).forEach(buildChart);
 }
 
+// color the radiation card by how high the radon reading is.
+// cutoffs follow the EPA residential action level (4 pCi/L).
+// change the numbers here if the lab wants different ranges.
+const RADON_LEVELS = [
+    { below: 2,        color: '#22c55e', bg: 'rgba(34, 197, 94, 0.07)',  border: 'rgba(34, 197, 94, 0.35)',  label: 'Normal',   title: 'Safe range.', text: 'Below the EPA action level of 4 pCi/L.' },
+    { below: 4,        color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.07)', border: 'rgba(245, 158, 11, 0.35)', label: 'Elevated', title: 'Elevated.',   text: 'Approaching the EPA action level of 4 pCi/L.' },
+    { below: Infinity, color: '#ef4444', bg: 'rgba(239, 68, 68, 0.07)',  border: 'rgba(239, 68, 68, 0.35)',  label: 'High',     title: 'High level.', text: 'Above the EPA action level of 4 pCi/L. Expected in the lab when sources are present.' },
+];
+
+function setRadiationStatus(pci) {
+    if (pci == null || isNaN(pci)) return;
+    const lvl = RADON_LEVELS.find(l => pci < l.below);
+    const set = (id, fn) => { const el = document.getElementById(id); if (el) fn(el); };
+    set('rad-status-text', el => { el.textContent = lvl.label; el.style.color = lvl.color; });
+    set('rad-shield-icon', el => { el.style.color = lvl.color; });
+    set('rad-shield',      el => { el.style.borderColor = lvl.color; });
+    set('rad-info-icon',   el => { el.style.color = lvl.color; });
+    set('rad-info-title',  el => { el.textContent = lvl.title; });
+    set('rad-info-text',   el => { el.textContent = lvl.text; });
+    set('rad-range-text',  el => { el.textContent = pci < 4 ? 'Typical background radiation' : 'Higher than typical background'; });
+
+    // tint the whole card to match
+    const panel = document.querySelector('.rad-panel');
+    if (panel) {
+        panel.style.backgroundColor = lvl.bg;
+        panel.style.borderColor = lvl.border;
+    }
+
+    // the info chip has its own green background in the css, retint it too
+    set('rad-info-box', el => {
+        el.style.backgroundColor = lvl.bg;
+        el.style.borderColor = lvl.border;
+    });
+}
+
+// station badges: a station counts as online if its newest reading is
+// less than an hour old, otherwise it shows offline.
+const ONLINE_MAX_AGE_MS = 60 * 60 * 1000;
+
+// db timestamps are either "2026-03-14 07:10:00" or raw epoch seconds
+function parseDbTime(raw) {
+    if (raw == null) return null;
+    const s = String(raw).trim();
+    const d = /^\d+(\.\d+)?$/.test(s) ? new Date(parseFloat(s) * 1000) : new Date(s.replace(' ', 'T'));
+    return isNaN(d) ? null : d;
+}
+
+function setStationBadge(id, data) {
+    const box = document.getElementById(id);
+    if (!box) return;
+    const t = parseDbTime(data?.timestamp);
+    const online = !!t && (Date.now() - t.getTime()) < ONLINE_MAX_AGE_MS;
+
+    const label = box.querySelector('.station-status-label');
+    if (label) {
+        label.textContent = online ? 'ONLINE' : 'OFFLINE';
+        label.style.color = online ? '#34d399' : '#94a3b8';
+    }
+    const dot = box.querySelector('.station-dot');
+    if (dot) {
+        dot.style.backgroundColor = online ? '#34d399' : '#64748b';
+        dot.classList.toggle('animate-pulse', online);
+    }
+}
 // fetches the latest sensor reading and pushes it into each chart
 // falls back to simulated values if the API is unreachable
 async function updateLiveChart() {
@@ -228,27 +422,50 @@ async function updateLiveChart() {
     // never looks broken to whoever's looking at it.
     let sensor;
     try {
-        // live-data.php only returns one station at a time, and the six
-        // metrics shown here live on different physical stations -- so
-        // pull RM 1962 (indoor temp/humidity/radiation/radon) and the
-        // CS Facility roof (wind/rain/solar) and merge them into one
-        // reading for the homepage overview
+        // the api returns one station at a time and the homepage mixes
+        // metrics from different stations, so grab rm1962 and the roof
+        // and merge them into one reading
         const [roomRes, roofRes] = await Promise.all([
             fetch('https://dev-engin-rws.pantheonsite.io/live-data.php?station=rm1962'),
             fetch('https://dev-engin-rws.pantheonsite.io/live-data.php?station=cs-facility'),
         ]);
         const room = (await roomRes.json()).data;
         const roof = (await roofRes.json()).data;
-        if (!room || !roof) throw new Error('no data returned from live-data.php');
+        // only fall back to fake data if nothing answered at all. one dead
+        // station shouldn't hide real readings from the other
+        if (!room && !roof) throw new Error('no data returned from live-data.php');
+
+        // rad8 is fetched separately so an outage there doesn't take the
+        // rest of the page down. if it's missing the radiation card just
+        // uses the rm1962 number instead
+        let rad8 = null;
+        try {
+            const rad8Res = await fetch('https://dev-engin-rws.pantheonsite.io/live-data.php?station=rad8');
+            rad8 = (await rad8Res.json()).data;
+        } catch (e) { /* keep rad8 = null */ }
+
+        // basement only matters for its status badge
+        let basement = null;
+        try {
+            const basementRes = await fetch('https://dev-engin-rws.pantheonsite.io/live-data.php?station=basement');
+            basement = (await basementRes.json()).data;
+        } catch (e) { /* keep basement = null */ }
+
+        // set the online/offline badges on the map cards
+        setStationBadge('status-cs-facility', roof);
+        setStationBadge('status-rm1962', room);
+        setStationBadge('status-basement', basement);
 
         sensor = {
-            indoor_temp:     room.indoor_temp,
-            indoor_humidity: room.indoor_humidity,
-            radiation:       room.radiation,
-            radon_level:     room.radon_level,
-            wind_speed:      roof.wind_speed,
-            rainfall:        roof.rainfall,
-            lux:             roof.lux,
+            indoor_temp:     room?.indoor_temp,
+            indoor_humidity: room?.indoor_humidity,
+            // use the rad8 radon concentration (pCi/L), not the raw
+            // counts per minute, those are just detector clicks
+            radiation:       rad8?.radon_pci_l ?? room?.radiation,
+            radon_level:     room?.radon_level,
+            wind_speed:      roof?.wind_speed,
+            rainfall:        roof?.rainfall,
+            lux:             roof?.lux,
         };
     } catch(e) {
         // API is down or sensors aren't pushing — generate fake data so the charts still show something
@@ -291,20 +508,16 @@ async function updateLiveChart() {
     setEl('current-radon',    incoming.radon,    2);
     setEl('nav-temp',         sensor.indoor_temp, 0);
 
-    // just show the raw radiation number for now -- the status/color
-    // logic (normal vs elevated, etc.) isn't wired up yet. the green
-    // "Normal" state, shield color, and info text are static placeholders
-    // set directly in index.html until that's built.
     const rad = sensor.radiation ?? 82;
     setEl('current-rad', rad, 0);
+    setRadiationStatus(Number(rad));
 
     setEl('weather-temp',  sensor.indoor_temp, 0);
     setEl('weather-feels', sensor.indoor_temp, 0);
 
-    // use the browser's own clock for the chart label rather than the
-    // server's raw timestamp field -- the rm1962 station's "time" column
-    // isn't always a full date (sometimes just HH:MM:SS), which JS can't
-    // parse and used to show up on the chart as "Invalid Date"
+    // label charts with the browser clock instead of the server timestamp.
+    // rm1962's time column is sometimes just HH:MM:SS which js can't parse
+    // and it used to show up as "Invalid Date"
     const ts = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
     // push the new reading into each chart and drop the oldest point if we're over the limit
@@ -320,6 +533,22 @@ async function updateLiveChart() {
         if (cfg.chart) cfg.chart.update();
     });
 }
+
+// shows/hides the what we measure popup
+function openMeasureInfo() {
+    const modal = document.getElementById('measure-info-modal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+function closeMeasureInfo() {
+    const modal = document.getElementById('measure-info-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    const m = document.getElementById('measure-info-modal');
+    if (m) m.addEventListener('click', e => { if (e.target === m) closeMeasureInfo(); });
+});
 
 // shows/hides the radiation info popup
 function openRadiationInfo() {

@@ -32,6 +32,9 @@ const avgBaselinePlugin = {
         ctx.stroke();
 
         const yOffset = (yPos - chart.chartArea.top < 15) ? 12 : -5;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.font = '10px monospace';
+        ctx.textAlign = 'right';
         ctx.fillText('AVG ' + avg.toFixed(avg > 10 ? 1 : 2), right - 6, yPos + yOffset);
         ctx.restore();
     }
@@ -84,8 +87,6 @@ const STATIONS_CONFIG = {
             const t = Number(sensor.indoor_temp ?? 54);
             set('weather-temp',  t.toFixed(0));
             set('weather-feels', t.toFixed(0));
-            set('weather-hi',    (t + 4).toFixed(0) + ' F');
-            set('weather-lo',    (t - 5).toFixed(0) + ' F');
             set('nav-temp',      t.toFixed(0) + '°F');
             set('current-radon',    (sensor.radon_level ?? 1.2).toFixed(2));
             set('radon-card-val',   (sensor.radon_level ?? 1.2).toFixed(2) + ' pCi/L');
@@ -168,6 +169,12 @@ const STATIONS_CONFIG = {
 
 function buildChart(key, m) {
     const ctx = document.getElementById(m.canvas);
+    if (ctx) {
+        // canvases are invisible to screen readers, so describe each chart.
+        // the current value also appears as plain text on the page.
+        ctx.setAttribute('role', 'img');
+        ctx.setAttribute('aria-label', 'Line chart of recent ' + m.label + ' readings');
+    }
     if (!ctx) return;
     instances[key] = new Chart(ctx, {
         type: 'line',
@@ -215,19 +222,42 @@ function buildChart(key, m) {
     });
 }
 
+// show when the station actually last reported so stale data is obvious.
+// db timestamps are either "2026-03-14 07:10:00" or raw epoch seconds
+// depending on the station
+function setLastReading(sensor, fromApi) {
+    const el = document.getElementById('last-reading');
+    if (!el) return;
+    if (!fromApi || !sensor?.timestamp) {
+        el.textContent = 'Last reading: unavailable (no connection to station database)';
+        return;
+    }
+    const raw = String(sensor.timestamp).trim();
+    const d = /^\d+(\.\d+)?$/.test(raw)
+        ? new Date(parseFloat(raw) * 1000)
+        : new Date(raw.replace(' ', 'T'));
+    el.textContent = 'Last reading: ' + (isNaN(d)
+        ? raw
+        : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }));
+}
+
 async function fetchAndUpdate() {
     const config = STATIONS_CONFIG[currentStation];
     if (!config) return;
 
     let sensor;
+    let fromApi = false;
     try {
         const res = await fetch(`https://dev-engin-rws.pantheonsite.io/live-data.php?station=${currentStation}`);
         if (!res.ok) throw new Error('bad response');
         sensor = (await res.json()).data;
+        fromApi = !!sensor;
     } catch (_) {
         sensor = config.generateFallbackData();
     }
     if (!sensor) sensor = config.generateFallbackData();
+
+    setLastReading(sensor, fromApi);
 
     const pushMap = config.updateUI(sensor);
     const now = new Date();

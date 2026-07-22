@@ -45,7 +45,7 @@
 }
 
 .sidebar-brand-sub {
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.15em;
   color: rgb(148 163 184);
@@ -63,7 +63,7 @@
 }
 
 .sidebar-section-label {
-  font-size: 0.5625rem;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.15em;

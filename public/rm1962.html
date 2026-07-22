@@ -61,9 +61,6 @@
         <a href="index.html#news" class="sidebar-link">
             <img src="../icon/news.png" alt="News & Updates" class="sidebar-nav-icon"> News &amp; Updates
         </a>
-        <a href="index.html#about" class="sidebar-link">
-            <img src="../icon/about.png" alt="About RWS" class="sidebar-nav-icon"> About RWS
-        </a>
     </nav>
 
 </aside>
@@ -111,12 +108,7 @@
                         <circle class="sun-core" cx="26" cy="26" r="10"/>
                     </svg>
                     <div>
-                        <div class="hero-temp-readout" id="weather-temp">71</div>
-                        <div class="hero-condition-txt">Controlled · Feels like <span id="weather-feels">71</span></div>
-                        <div class="hero-extremes-range">
-                            <span>↑ <span id="weather-hi">74 F</span></span>
-                            <span>↓ <span id="weather-lo">62 F</span></span>
-                        </div>
+                        <div class="hero-temp-readout"><span id="weather-temp">71</span><span class="hero-temp-unit">°F</span></div>
                     </div>
                 </div>
 
@@ -144,6 +136,7 @@
                     <div>
                         <h2>Sensor Data Logs</h2>
                         <p>Live from <code class="sensor-code">sensor_rm1962</code></p>
+                        <p class="last-reading-stamp" id="last-reading">Last reading: —</p>
                     </div>
                     <button onclick="downloadAllCombinedCSV()" class="export-btn">Export CSV</button>
                 </div>
@@ -273,10 +266,6 @@
                         <span class="info-label">Instruments</span>
                         <span class="info-value">BME680, DIYgm</span>
                     </div>
-                    <div class="info-row">
-                        <span class="info-label">Status</span>
-                        <span class="info-value-online">● Online</span>
-                    </div>
                 </div>
 
             </div>
@@ -372,7 +361,7 @@
 </div>
 
 
-<script src="js/footer.js"></script>
+    <script src="js/footer.js"></script>
 <script src="js/station-manager.js"></script>
 
 </body>
