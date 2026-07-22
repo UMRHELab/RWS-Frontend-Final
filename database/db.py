@@ -12,11 +12,11 @@ INSERT_SQL_SENSOR_DATA = f"""
     VALUES ({", ".join(["?"] * len(COLUMNS_SENSOR_DATA))})
     """
 
-
+#Connect to the database
 def get_connection() -> sqlite3.Connection:
     return sqlite3.connect(DB_PATH)
 
-
+#Create the tables
 def initialize_database(connection: sqlite3.Connection, cursor: sqlite3.Cursor) -> None:
     # Add additional tables here if needed
     cursor.executescript(SCHEMA_SENSOR_DATA)

@@ -1,5 +1,5 @@
-// Shared script for all three station pages (basement, cs-facility, rm1962).
-// Detects which page it's on at load time and runs accordingly.
+// Shared logic for all station dashboards.
+// Detects the active station page on load.
 
 let history = { radon: [], temperature: [], moisture: [], soiltemp: [], wind: [], rainfall: [], solar: [], humidity: [], radiation: [], pressure: [] };
 let instances = {};
@@ -193,21 +193,19 @@ function buildChart(key, m) {
                     grid: { display: false },
                     ticks: {
                         maxTicksLimit: 6, maxRotation: 0,
-                        // "Now" is bigger + white so it stands out from the regular
-                        // gray timestamp labels
+                        // Highlight the latest timestamp.
                         color: (ctx) => ctx.tick.value === ctx.scale.getLabels().length - 1 ? '#ffffff' : '#64748b',
                         font: (ctx) => ctx.tick.value === ctx.scale.getLabels().length - 1
                             ? { size: 11, weight: 'bold' }
                             : { size: 9 },
-                        // tag the most recent point with "Now" but keep its timestamp too
+                        // Mark the latest data point as "Now".
                         callback: function (value, index) {
                             const isLast = index === this.getLabels().length - 1;
                             const label = this.getLabelForValue(value);
                             return isLast ? 'Now · ' + label : label;
                         }
                     },
-                    // autoSkip won't always land on the very last point -- force it to
-                    // stay in the tick list so "Now" is never skipped
+                    // Ensure the latest tick is always displayed.
                     afterBuildTicks: (axis) => {
                         const lastIndex = axis.getLabels().length - 1;
                         if (lastIndex >= 0 && !axis.ticks.some(t => t.value === lastIndex)) {
@@ -222,9 +220,8 @@ function buildChart(key, m) {
     });
 }
 
-// show when the station actually last reported so stale data is obvious.
-// db timestamps are either "2026-03-14 07:10:00" or raw epoch seconds
-// depending on the station
+// Display the station's last reported timestamp.
+// Handles both SQL timestamps and epoch values.
 function setLastReading(sensor, fromApi) {
     const el = document.getElementById('last-reading');
     if (!el) return;
