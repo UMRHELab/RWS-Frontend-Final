@@ -70,10 +70,10 @@ const STATIONS_CONFIG = {
             history.soiltemp[i]?.val?.toFixed(1) || ''
         ],
         metrics: {
-            radon:       { canvas: 'radonChart',    color: '#fb7185', label: 'Radon Concentration', dec: 2, unit: ' pCi/L', avgId: 'avg-radon' },
-            temperature: { canvas: 'tempChart',     color: '#c084fc', label: 'Ambient Temperature', dec: 1, unit: '°F',     avgId: 'avg-temp' },
-            moisture:    { canvas: 'moistureChart', color: '#4ade80', label: 'Soil Moisture',        dec: 1, unit: '%',      avgId: 'avg-moisture' },
-            soiltemp:    { canvas: 'soiltempChart', color: '#fbbf24', label: 'Soil Temperature',     dec: 1, unit: '°F',     avgId: 'avg-soiltemp' }
+            radon:       { canvas: 'radonChart',    color: '#e27cff', label: 'Radon Concentration', dec: 2, unit: ' pCi/L', avgId: 'avg-radon' },
+            temperature: { canvas: 'tempChart',     color: '#e27cff', label: 'Ambient Temperature', dec: 1, unit: '°F',     avgId: 'avg-temp' },
+            moisture:    { canvas: 'moistureChart', color: '#3cd762', label: 'Soil Moisture',        dec: 1, unit: '%',      avgId: 'avg-moisture' },
+            soiltemp:    { canvas: 'soiltempChart', color: '#3cd762', label: 'Soil Temperature',     dec: 1, unit: '°F',     avgId: 'avg-soiltemp' }
         },
         generateFallbackData: () => ({
             radon_level:      1.2  + (Math.random() * 0.4 - 0.2),
@@ -106,10 +106,10 @@ const STATIONS_CONFIG = {
             history.solar[i]?.val?.toFixed(0) || ''
         ],
         metrics: {
-            temperature: { canvas: 'tempChart',  color: '#c084fc', label: 'Ambient Temp',   dec: 1, unit: '°F',   avgId: 'avg-temp' },
-            wind:        { canvas: 'windChart',  color: '#4ade80', label: 'Wind Speed',      dec: 1, unit: ' mph', avgId: 'avg-wind' },
-            rainfall:    { canvas: 'rainChart',  color: '#38bdf8', label: 'Rainfall Volume', dec: 3, unit: ' in',  avgId: 'avg-rain' },
-            solar:       { canvas: 'solarChart', color: '#fbbf24', label: 'Solar Density',   dec: 0, unit: ' lx',  avgId: 'avg-solar' }
+            temperature: { canvas: 'tempChart',  color: '#e27cff', label: 'Ambient Temp',   dec: 1, unit: '°F',   avgId: 'avg-temp' },
+            wind:        { canvas: 'windChart',  color: '#119400', label: 'Wind Speed',      dec: 1, unit: ' mph', avgId: 'avg-wind' },
+            rainfall:    { canvas: 'rainChart',  color: '#30ffed', label: 'Rainfall Volume', dec: 3, unit: ' in',  avgId: 'avg-rain' },
+            solar:       { canvas: 'solarChart', color: '#ffc800', label: 'Solar Density',   dec: 0, unit: ' lx',  avgId: 'avg-solar' }
         },
         generateFallbackData: () => ({
             indoor_temp: 56.0 + (Math.random() * 2 - 1),
@@ -140,10 +140,10 @@ const STATIONS_CONFIG = {
             history.pressure[i]?.val?.toFixed(1) || ''
         ],
         metrics: {
-            temperature: { canvas: 'tempChart',      color: '#c084fc', label: 'Ambient Temperature', dec: 1, unit: '°F',    avgId: 'avg-temp' },
-            humidity:    { canvas: 'humidityChart',  color: '#38bdf8', label: 'Relative Humidity',   dec: 1, unit: '%',      avgId: 'avg-humidity' },
-            radiation:   { canvas: 'radiationChart', color: '#34d399', label: 'Ambient Radiation',   dec: 0, unit: ' nSv/h', avgId: 'avg-radiation' },
-            pressure:    { canvas: 'pressureChart',  color: '#60a5fa', label: 'Barometric Pressure', dec: 1, unit: ' hPa',   avgId: 'avg-pressure' }
+            temperature: { canvas: 'tempChart',      color: '#6e75ff', label: 'Ambient Temperature', dec: 1, unit: '°F',    avgId: 'avg-temp' },
+            humidity:    { canvas: 'humidityChart',  color: '#b187ff', label: 'Relative Humidity',   dec: 1, unit: '%',      avgId: 'avg-humidity' },
+            radiation:   { canvas: 'radiationChart', color: '#e27cff', label: 'Ambient Radiation',   dec: 0, unit: ' nSv/h', avgId: 'avg-radiation' },
+            pressure:    { canvas: 'pressureChart',  color: '#f10000', label: 'Barometric Pressure', dec: 1, unit: ' hPa',   avgId: 'avg-pressure' }
         },
         generateFallbackData: () => ({
             indoor_temp:     71.0 + (Math.random() * 2 - 1),
