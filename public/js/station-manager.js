@@ -1,5 +1,5 @@
-// Shared logic for all station dashboards.
-// Detects the active station page on load.
+// shared logic for all three station dashboards (basement, cs-facility, rm1962)
+// figures out which page we're on when it loads and configures itself from there
 
 let history = { radon: [], temperature: [], moisture: [], soiltemp: [], wind: [], rainfall: [], solar: [], humidity: [], radiation: [], pressure: [] };
 let instances = {};
@@ -60,15 +60,17 @@ function toggleRadiationsMenu() {
     if (chevron) chevron.classList.toggle('collapsed');
 }
 
+// picks a plausible-looking fake number near a normal baseline. only gets
+// used when the live api is unreachable, so the charts have something to
+// show instead of sitting empty
+function jitter(base, spread) {
+    return base + (Math.random() - 0.5) * spread;
+}
+
 const STATIONS_CONFIG = {
     'basement': {
-        exportFilename: () => `RWS_Basement_${new Date().toISOString().slice(0, 10)}.csv`,
+        filenamePrefix: 'RWS_Basement',
         csvHeaders: ['Timestamp', 'Radon (pCi/L)', 'Temp (°F)', 'Soil Moisture (%)', 'Soil Temp (°F)'],
-        csvRowMapping: (i) => [
-            history.radon[i]?.ts || '', history.radon[i]?.val?.toFixed(2) || '',
-            history.temperature[i]?.val?.toFixed(1) || '', history.moisture[i]?.val?.toFixed(1) || '',
-            history.soiltemp[i]?.val?.toFixed(1) || ''
-        ],
         metrics: {
             radon:       { canvas: 'radonChart',    color: '#e27cff', label: 'Radon Concentration', dec: 2, unit: ' pCi/L', avgId: 'avg-radon' },
             temperature: { canvas: 'tempChart',     color: '#e27cff', label: 'Ambient Temperature', dec: 1, unit: '°F',     avgId: 'avg-temp' },
@@ -76,10 +78,10 @@ const STATIONS_CONFIG = {
             soiltemp:    { canvas: 'soiltempChart', color: '#3cd762', label: 'Soil Temperature',     dec: 1, unit: '°F',     avgId: 'avg-soiltemp' }
         },
         generateFallbackData: () => ({
-            radon_level:      1.2  + (Math.random() * 0.4 - 0.2),
-            indoor_temp:      54.0 + (Math.random() * 2 - 1),
-            soil_moisture:    32.5 + (Math.random() * 3 - 1.5),
-            soil_temperature: 54.0 + (Math.random() * 2 - 1),
+            radon_level:      jitter(1.2, 0.4),
+            indoor_temp:      jitter(54, 2),
+            soil_moisture:    jitter(32.5, 3),
+            soil_temperature: jitter(54, 2),
             timestamp: new Date().toISOString()
         }),
         updateUI: (sensor) => {
@@ -98,13 +100,8 @@ const STATIONS_CONFIG = {
         }
     },
     'cs-facility': {
-        exportFilename: () => `RWS_CSFacility_${new Date().toISOString().slice(0, 10)}.csv`,
+        filenamePrefix: 'RWS_CSFacility',
         csvHeaders: ['Timestamp', 'Temp (°F)', 'Wind (mph)', 'Rainfall (in)', 'Solar (lx)'],
-        csvRowMapping: (i) => [
-            history.temperature[i]?.ts || '', history.temperature[i]?.val?.toFixed(1) || '',
-            history.wind[i]?.val?.toFixed(1) || '', history.rainfall[i]?.val?.toFixed(3) || '',
-            history.solar[i]?.val?.toFixed(0) || ''
-        ],
         metrics: {
             temperature: { canvas: 'tempChart',  color: '#e27cff', label: 'Ambient Temp',   dec: 1, unit: '°F',   avgId: 'avg-temp' },
             wind:        { canvas: 'windChart',  color: '#119400', label: 'Wind Speed',      dec: 1, unit: ' mph', avgId: 'avg-wind' },
@@ -112,10 +109,12 @@ const STATIONS_CONFIG = {
             solar:       { canvas: 'solarChart', color: '#ffc800', label: 'Solar Density',   dec: 0, unit: ' lx',  avgId: 'avg-solar' }
         },
         generateFallbackData: () => ({
-            indoor_temp: 56.0 + (Math.random() * 2 - 1),
-            wind_speed:  Math.max(0, 12 + (Math.random() * 4 - 2)),
+            indoor_temp: jitter(56, 2),
+            wind_speed:  Math.max(0, jitter(12, 4)),
+            // rain doesn't jitter around a baseline the same way - it's
+            // either dry or it's not, so just a small random trickle
             rainfall:    Math.max(0, Math.random() * 0.005),
-            lux:         480 + (Math.random() * 60 - 30),
+            lux:         jitter(480, 60),
             timestamp:   new Date().toISOString()
         }),
         updateUI: (sensor) => {
@@ -132,13 +131,8 @@ const STATIONS_CONFIG = {
         }
     },
     'rm1962': {
-        exportFilename: () => `RWS_RM1962_${new Date().toISOString().slice(0, 10)}.csv`,
+        filenamePrefix: 'RWS_RM1962',
         csvHeaders: ['Timestamp', 'Temp (°F)', 'Humidity (%)', 'Radiation (nSv/h)', 'Pressure (hPa)'],
-        csvRowMapping: (i) => [
-            history.temperature[i]?.ts || '', history.temperature[i]?.val?.toFixed(1) || '',
-            history.humidity[i]?.val?.toFixed(1) || '', history.radiation[i]?.val?.toFixed(0) || '',
-            history.pressure[i]?.val?.toFixed(1) || ''
-        ],
         metrics: {
             temperature: { canvas: 'tempChart',      color: '#6e75ff', label: 'Ambient Temperature', dec: 1, unit: '°F',    avgId: 'avg-temp' },
             humidity:    { canvas: 'humidityChart',  color: '#b187ff', label: 'Relative Humidity',   dec: 1, unit: '%',      avgId: 'avg-humidity' },
@@ -146,10 +140,10 @@ const STATIONS_CONFIG = {
             pressure:    { canvas: 'pressureChart',  color: '#f10000', label: 'Barometric Pressure', dec: 1, unit: ' hPa',   avgId: 'avg-pressure' }
         },
         generateFallbackData: () => ({
-            indoor_temp:     71.0 + (Math.random() * 2 - 1),
-            indoor_humidity: 48.0 + (Math.random() * 4 - 2),
-            radiation:       82   + (Math.random() * 8 - 4),
-            indoor_pressure: 1013 + (Math.random() * 4 - 2),
+            indoor_temp:     jitter(71, 2),
+            indoor_humidity: jitter(48, 4),
+            radiation:       jitter(82, 8),
+            indoor_pressure: jitter(1013, 4),
             timestamp: new Date().toISOString()
         }),
         updateUI: (sensor) => {
@@ -193,19 +187,19 @@ function buildChart(key, m) {
                     grid: { display: false },
                     ticks: {
                         maxTicksLimit: 6, maxRotation: 0,
-                        // Highlight the latest timestamp.
+                        // make the latest timestamp stand out (bigger + white)
                         color: (ctx) => ctx.tick.value === ctx.scale.getLabels().length - 1 ? '#ffffff' : '#64748b',
                         font: (ctx) => ctx.tick.value === ctx.scale.getLabels().length - 1
                             ? { size: 11, weight: 'bold' }
                             : { size: 9 },
-                        // Mark the latest data point as "Now".
+                        // tag that last point as "Now" instead of just its timestamp
                         callback: function (value, index) {
                             const isLast = index === this.getLabels().length - 1;
                             const label = this.getLabelForValue(value);
                             return isLast ? 'Now · ' + label : label;
                         }
                     },
-                    // Ensure the latest tick is always displayed.
+                    // autoSkip can drop the last tick, so force it to stick around
                     afterBuildTicks: (axis) => {
                         const lastIndex = axis.getLabels().length - 1;
                         if (lastIndex >= 0 && !axis.ticks.some(t => t.value === lastIndex)) {
@@ -220,8 +214,9 @@ function buildChart(key, m) {
     });
 }
 
-// Display the station's last reported timestamp.
-// Handles both SQL timestamps and epoch values.
+// shows when the station last reported in. timestamps come as either a
+// normal SQL datetime or raw epoch seconds depending on the station, so
+// this handles both
 function setLastReading(sensor, fromApi) {
     const el = document.getElementById('last-reading');
     if (!el) return;
@@ -385,16 +380,35 @@ function downloadAllCombinedCSV() {
     const config = STATIONS_CONFIG[currentStation];
     if (!config) return;
 
+    // build each row straight from history + the metric's own decimal
+    // precision, instead of hand-writing a mapping per station that has to
+    // stay in sync with metrics every time something changes
+    const keys = Object.keys(config.metrics);
+    const maxLen = Math.max(...keys.map(k => history[k].length), 0);
+
     const rows = [config.csvHeaders];
-    const maxLen = Math.max(...Object.keys(config.metrics).map(k => history[k].length), 0);
-    for (let i = 0; i < maxLen; i++) rows.push(config.csvRowMapping(i));
+    for (let i = 0; i < maxLen; i++) {
+        // all the metrics get logged in the same tick, so any of them has
+        // the timestamp for this row - just grab the first one that does
+        let ts = '';
+        for (const k of keys) {
+            if (history[k][i]?.ts) { ts = history[k][i].ts; break; }
+        }
+
+        const row = [ts];
+        for (const k of keys) {
+            const val = history[k][i]?.val;
+            row.push(val != null ? Number(val).toFixed(config.metrics[k].dec) : '');
+        }
+        rows.push(row);
+    }
 
     const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = config.exportFilename();
+    a.download = `${config.filenamePrefix}_${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

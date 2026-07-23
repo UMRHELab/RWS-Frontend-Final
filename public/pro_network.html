@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Network - RWS</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="../styles/styles.css">
+    <link rel="stylesheet" href="../styles/sidebar.css">
+    <link rel="stylesheet" href="../styles/dose-rate.css">
+    <link rel="stylesheet" href="../styles/footer.css">
+</head>
+<body>
+
+<!--  SIDEBAR  -->
+<aside class="sidebar">
+
+    <div class="sidebar-header">
+        <img src="../icon/rwsbiglogo.png" alt="RWS Logo" class="sidebar-logo-img">
+    </div>
+
+    <nav class="sidebar-nav">
+        <p class="sidebar-section-label">Stations</p>
+
+        <a href="index.html#overview" class="sidebar-link">
+            <img src="../icon/overview.png" alt="Overview" class="sidebar-nav-icon"> Overview
+        </a>
+        <a href="index.html#conditions" class="sidebar-link">
+            <img src="../icon/currentcon.png" alt="Current Conditions" class="sidebar-nav-icon"> Current Conditions
+        </a>
+
+        <div class="sidebar-dropdown">
+            <button onclick="toggleRadiationsMenu()" class="sidebar-dropdown-toggle">
+                <span class="sidebar-dropdown-label">
+                    <img src="../icon/radiation.png" alt="Radiations" class="sidebar-nav-icon"> Radiations
+                </span>
+                <svg id="radiation-chevron" class="sidebar-chevron collapsed" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </button>
+
+            <div id="radiations-submenu" class="sidebar-submenu hidden">
+                <a href="cs-facility.html" class="sidebar-station-link inactive">
+                    <span>CS Facility Aux Station</span>
+                    <img src="../icon/online.png" alt="Online" class="sidebar-station-icon">
+                </a>
+                <a href="basement.html" class="sidebar-station-link inactive">
+                    <span>Basement Aux Station</span>
+                    <img src="../icon/online.png" alt="Online" class="sidebar-station-icon">
+                </a>
+                <a href="rm1962.html" class="sidebar-station-link inactive">
+                    <span>Room 1962 Aux Station</span>
+                    <img src="../icon/online.png" alt="Online" class="sidebar-station-icon">
+                </a>
+            </div>
+        </div>
+
+        <a href="index.html#measures" class="sidebar-link">
+            <img src="../icon/measure.png" alt="What we measure" class="sidebar-nav-icon"> What we measure
+        </a>
+        <a href="index.html#news" class="sidebar-link">
+            <img src="../icon/news.png" alt="News & Updates" class="sidebar-nav-icon"> News &amp; Updates
+        </a>
+
+        <p class="sidebar-section-label">Pro Network</p>
+
+        <a href="pro_network.html" class="sidebar-link sidebar-link-pro sidebar-link-active">
+            Pro Network
+        </a>
+    </nav>
+
+</aside>
+
+
+<!--  MAIN CONTENT  -->
+<div class="main-viewport">
+
+    <header class="global-header">
+        <div class="header-left">
+            <span class="header-scope-label">Public Environmental Observatory</span>
+            <div class="network-badge">
+                <span class="network-ping-dot"></span>
+                Live Network Data
+            </div>
+            <span id="top-bar-clock" class="live-clock">--:--:--</span>
+        </div>
+        <div class="header-right">
+            <div class="local-weather-pill">
+                <span>📍 Ann Arbor, MI</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="workspace-container">
+
+        <!-- Hero Banner -->
+        <div class="station-hero-banner dose-rate-hero">
+            <div class="hero-identity-block">
+
+                <div class="hero-meta-titles">
+                    <h1>RWS Pro Network</h1>
+                    <p class="subtitle">Ionizing Radiation &amp; Environmental Monitoring</p>
+                </div>
+
+            </div>
+            <div class="hero-action-block">
+                <button onclick="window.location.href='index.html'" class="back-btn">← Back to Dashboard</button>
+                <span class="banner-date-stamp" id="greeting-date">—</span>
+            </div>
+        </div>
+
+
+        <!-- Data Grid -->
+        <div class="workspace-grid">
+
+            <!-- Left Column: Charts -->
+            <div class="primary-data-column">
+
+                <div class="control-strip">
+                    <div>
+                        <h2>Pro Sensor Feed</h2>
+                        <p>Live from webapps2</p>
+                    </div>
+                </div>
+
+                <!-- Gamma Dose Rate -->
+                <div class="glass">
+                    <div class="sensor-card-header">
+                        <h3 class="sensor-title">
+                            Gamma Dose Rate
+                            <code class="sensor-code">DoseRate</code>
+                        </h3>
+                        <div class="sensor-avg-row">
+                            <span class="sensor-avg-text">Latest: <span id="latest-dose" class="avg-dose-val">—</span> nSv/h</span>
+                        </div>
+                    </div>
+                    <div class="chart-height-wrapper">
+                        <canvas id="doseChart"></canvas>
+                    </div>
+                    <p class="sensor-note" id="dose-note">Loading…</p>
+                </div>
+
+                <!-- Air Temperature (Combined) -->
+                <div class="glass">
+                    <div class="sensor-card-header">
+                        <h3 class="sensor-title">
+                            Air Temperature (External &amp; Enclosure)
+                            <code class="sensor-code">AirTemp, EnclosureTemp</code>
+                        </h3>
+                        <div class="sensor-avg-row">
+                            <span class="sensor-avg-text">Latest: <span id="latest-airtemp" class="avg-temp-val">—</span> °C</span>
+                        </div>
+                    </div>
+                    <div class="chart-height-wrapper">
+                        <canvas id="airTempChart"></canvas>
+                    </div>
+                    <p class="sensor-note" id="airtemp-note">Loading…</p>
+                </div>
+
+                <!-- Air Pressure -->
+                <div class="glass">
+                    <div class="sensor-card-header">
+                        <h3 class="sensor-title">
+                            Air Pressure
+                            <code class="sensor-code">BarometricPressure</code>
+                        </h3>
+                        <div class="sensor-avg-row">
+                            <span class="sensor-avg-text">Latest: <span id="latest-pressure" class="avg-pressure-val">—</span> mBar</span>
+                        </div>
+                    </div>
+                    <div class="chart-height-wrapper">
+                        <canvas id="pressureChart"></canvas>
+                    </div>
+                    <p class="sensor-note" id="pressure-note">Loading…</p>
+                </div>
+
+                <!-- Wind Speed -->
+                <div class="glass">
+                    <div class="sensor-card-header">
+                        <h3 class="sensor-title">
+                            Wind Speed
+                            <code class="sensor-code">WindSpeed</code>
+                        </h3>
+                        <div class="sensor-avg-row">
+                            <span class="sensor-avg-text">Latest: <span id="latest-wind" class="avg-wind-val">—</span> m/s</span>
+                        </div>
+                    </div>
+                    <div class="chart-height-wrapper">
+                        <canvas id="windChart"></canvas>
+                    </div>
+                    <p class="sensor-note" id="wind-note">Loading…</p>
+                </div>
+
+                <!-- Solar Radiation -->
+                <div class="glass">
+                    <div class="sensor-card-header">
+                        <h3 class="sensor-title">
+                            Solar Radiation
+                            <code class="sensor-code">SolarRad</code>
+                        </h3>
+                        <div class="sensor-avg-row">
+                            <span class="sensor-avg-text">Latest: <span id="latest-solar" class="avg-solar-val">—</span> kW</span>
+                        </div>
+                    </div>
+                    <div class="chart-height-wrapper">
+                        <canvas id="solarChart"></canvas>
+                    </div>
+                    <p class="sensor-note" id="solar-note">Loading…</p>
+                </div>
+
+                <!-- Rainfall (Combined) -->
+                <div class="glass">
+                    <div class="sensor-card-header">
+                        <h3 class="sensor-title">
+                            Rainfall (Combined)
+                            <code class="sensor-code">Rain, RainRunningTotal</code>
+                        </h3>
+                        <div class="sensor-avg-row">
+                            <span class="sensor-avg-text">Latest: <span id="latest-rain" class="avg-rain-val">—</span> mm</span>
+                        </div>
+                    </div>
+                    <div class="chart-height-wrapper">
+                        <canvas id="rainChart"></canvas>
+                    </div>
+                    <p class="sensor-note" id="rain-note">Loading…</p>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Conditions + Info -->
+            <div class="sidebar-data-column">
+
+                <div class="readout-card">
+                    <h3 class="section-header">Current Conditions</h3>
+
+                    <div class="readout-item">
+                        <div class="readout-value val-dose" id="current-dose">--</div>
+                        <div class="readout-caption">nSv/h · Gamma Dose Rate</div>
+                    </div>
+
+                    <div class="readout-divider"></div>
+
+                    <div class="readout-item">
+                        <div class="readout-value val-temp" id="current-airtemp">--</div>
+                        <div class="readout-caption">°C · Enclosure Temp</div>
+                    </div>
+
+                    <div class="readout-divider"></div>
+
+                    <div class="readout-item">
+                        <div class="readout-value val-pressure" id="current-pressure">--</div>
+                        <div class="readout-caption">mBar · Air Pressure</div>
+                    </div>
+                </div>
+
+                <div class="station-info-card">
+                    <h3>Station Info</h3>
+                    <div class="info-row">
+                        <span class="info-label">Network</span>
+                        <span class="info-value">RWS Pro</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Location</span>
+                        <span class="info-value">CS Facility rooftop + gamma detector</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Poll Rate</span>
+                        <span class="info-value">60s</span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+</div>
+
+<script src="js/footer.js"></script>
+<script src="js/pro_network.js"></script>
+
+</body>
+</html>

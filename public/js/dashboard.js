@@ -306,9 +306,8 @@ function buildChart(key) {
                 },
                 ...annotationPlugin
             },
-            //This controls the two axes of the chart — the x-axis 
-            // (time, running left to right) and the y-axis (the value 
-            // being measured, running up and down).
+            // the two axes: x is time running left to right, y is whatever
+            // value this chart is tracking, running bottom to top
             scales: {
                 x: {
                     grid: { display: false },

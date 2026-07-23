@@ -96,6 +96,16 @@
   background-color: rgba(30, 41, 59, 0.4);
 }
 
+.sidebar-link-pro {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffcb05;
+}
+
+.sidebar-link-pro:hover {
+  color: #ffd83d;
+}
+
 .sidebar-link-active,
 .nav-active {
   color: #ffffff;
