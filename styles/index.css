@@ -356,6 +356,14 @@
     margin: 0.25rem 0 0 0;
 }
 
+.env-pro-note {
+    font-size: 11px;
+    color: #94a3b8;
+    margin: -0.5rem 0 1.25rem 0;
+    padding-top: 0.75rem;
+    border-top: 1px solid #1e293b;
+}
+
 .live-badge {
     display: flex;
     align-items: center;

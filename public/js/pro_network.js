@@ -284,7 +284,103 @@ async function updateRainPanel() {
     }
 }
 
-// runs once the page loads: set up the clock, build all 6 empty charts,
+// --- Relative Humidity ---
+
+let humidityChart = null;
+function initHumidityPanel() {
+    humidityChart = buildLineChart('humidityChart', [lineDataset('#67e8f9')], { yTitle: '%' });
+}
+
+async function updateHumidityPanel() {
+    const note = document.getElementById('humidity-note');
+    try {
+        const rows = await fetchTable('RelativeHumidity');
+        if (!rows.length) throw new Error('no data');
+        humidityChart.data.labels = rows.map(r => r.x);
+        humidityChart.data.datasets[0].data = rows.map(r => r.y);
+        humidityChart.update();
+        set('latest-humidity', rows[rows.length - 1].y.toFixed(1));
+        if (note) note.textContent = 'Rooftop weather station';
+    } catch (e) {
+        set('latest-humidity', '—');
+        if (note) note.textContent = 'No humidity data available.';
+    }
+}
+
+// --- Radon (RadonEye) ---
+
+let radonEyeChart = null;
+function initRadonEyePanel() {
+    radonEyeChart = buildLineChart('radonEyeChart', [lineDataset('#6ee7b7')], { yTitle: 'pCi/L' });
+}
+
+async function updateRadonEyePanel() {
+    const note = document.getElementById('radoneye-note');
+    try {
+        const rows = await fetchTable('RadonEye');
+        if (!rows.length) throw new Error('no data');
+        radonEyeChart.data.labels = rows.map(r => r.x);
+        radonEyeChart.data.datasets[0].data = rows.map(r => r.y);
+        radonEyeChart.update();
+        set('latest-radoneye', rows[rows.length - 1].y.toFixed(2));
+        if (note) note.textContent = 'RadonEye detector';
+    } catch (e) {
+        set('latest-radoneye', '—');
+        if (note) note.textContent = 'No RadonEye data available.';
+    }
+}
+
+// --- Sword Spectrum ---
+// not totally sure what unit this reads in (spectrum data, not a plain
+// scalar like the other sensors), so this just plots whatever "Data" comes
+// back without assuming a unit - worth double checking against phpMyAdmin
+// if the numbers look off
+
+let swordChart = null;
+function initSwordPanel() {
+    swordChart = buildLineChart('swordChart', [lineDataset('#86efac')], { yTitle: 'raw reading' });
+}
+
+async function updateSwordPanel() {
+    const note = document.getElementById('sword-note');
+    try {
+        const rows = await fetchTable('SwordSpectrum');
+        if (!rows.length) throw new Error('no data');
+        swordChart.data.labels = rows.map(r => r.x);
+        swordChart.data.datasets[0].data = rows.map(r => r.y);
+        swordChart.update();
+        set('latest-sword', rows[rows.length - 1].y);
+        if (note) note.textContent = 'Sword spectrometer';
+    } catch (e) {
+        set('latest-sword', '—');
+        if (note) note.textContent = 'No sword spectrum data available.';
+    }
+}
+
+// --- Radon (Rad7) ---
+
+let rad7Chart = null;
+function initRad7Panel() {
+    rad7Chart = buildLineChart('rad7Chart', [lineDataset('#fca5a5')], { yTitle: 'pCi/L' });
+}
+
+async function updateRad7Panel() {
+    const note = document.getElementById('rad7-note');
+    try {
+        const rows = await fetchTable('Rad7');
+        if (!rows.length) throw new Error('no data');
+        rad7Chart.data.labels = rows.map(r => r.x);
+        rad7Chart.data.datasets[0].data = rows.map(r => r.y);
+        rad7Chart.update();
+        set('latest-rad7', rows[rows.length - 1].y.toFixed(2));
+        if (note) note.textContent = 'RAD7 detector';
+    } catch (e) {
+        set('latest-rad7', '—');
+        if (note) note.textContent = 'No Rad7 data available.';
+    }
+}
+
+// runs once the page loads: set up the clock, build all the empty charts,
 // then fetch real data into them and keep refreshing every minute
 document.addEventListener('DOMContentLoaded', () => {
     initClockAndDates();
@@ -295,6 +391,10 @@ document.addEventListener('DOMContentLoaded', () => {
     initWindPanel();
     initSolarPanel();
     initRainPanel();
+    initHumidityPanel();
+    initRadonEyePanel();
+    initSwordPanel();
+    initRad7Panel();
 
     const refreshAll = () => {
         updateDosePanel();
@@ -303,6 +403,10 @@ document.addEventListener('DOMContentLoaded', () => {
         updateWindPanel();
         updateSolarPanel();
         updateRainPanel();
+        updateHumidityPanel();
+        updateRadonEyePanel();
+        updateSwordPanel();
+        updateRad7Panel();
     };
 
     refreshAll();

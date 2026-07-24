@@ -29,10 +29,23 @@
             <img src="../icon/currentcon.png" alt="Current Conditions" class="sidebar-nav-icon"> Current Conditions
         </a>
 
+        <a href="pro_network.html" class="sidebar-link sidebar-link-pro sidebar-link-active">
+            Pro Sensors Network
+        </a>
+
+        <a href="index.html#measures" class="sidebar-link">
+            <img src="../icon/measure.png" alt="What we measure" class="sidebar-nav-icon"> What we measure
+        </a>
+        <a href="index.html#news" class="sidebar-link">
+            <img src="../icon/news.png" alt="News & Updates" class="sidebar-nav-icon"> News &amp; Updates
+        </a>
+
+        <p class="sidebar-section-label">Lite Network</p>
+
         <div class="sidebar-dropdown">
             <button onclick="toggleRadiationsMenu()" class="sidebar-dropdown-toggle">
                 <span class="sidebar-dropdown-label">
-                    <img src="../icon/radiation.png" alt="Radiations" class="sidebar-nav-icon"> Radiations
+                    Lite Network
                 </span>
                 <svg id="radiation-chevron" class="sidebar-chevron collapsed" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
@@ -54,20 +67,11 @@
                 </a>
             </div>
         </div>
-
-        <a href="index.html#measures" class="sidebar-link">
-            <img src="../icon/measure.png" alt="What we measure" class="sidebar-nav-icon"> What we measure
-        </a>
-        <a href="index.html#news" class="sidebar-link">
-            <img src="../icon/news.png" alt="News & Updates" class="sidebar-nav-icon"> News &amp; Updates
-        </a>
-
-        <p class="sidebar-section-label">Pro Network</p>
-
-        <a href="pro_network.html" class="sidebar-link sidebar-link-pro sidebar-link-active">
-            Pro Network
-        </a>
     </nav>
+
+    <div class="sidebar-footer">
+        <p class="sidebar-footer-note"><strong>Lite</strong> covers wind, rainfall, humidity, and UV. <strong class="pro-highlight">Pro</strong> covers the radiation gear &mdash; Swords, Rad8, RadonEye, Gamon-D/S, and the datalogger.</p>
+    </div>
 
 </aside>
 
@@ -119,7 +123,7 @@
                 <div class="control-strip">
                     <div>
                         <h2>Pro Sensor Feed</h2>
-                        <p>Live from webapps2</p>
+                        <p>Reading from webapps2 &mdash; not actively updating right now, showing last available readings</p>
                     </div>
                 </div>
 
@@ -223,6 +227,74 @@
                         <canvas id="rainChart"></canvas>
                     </div>
                     <p class="sensor-note" id="rain-note">Loading…</p>
+                </div>
+
+                <!-- Relative Humidity -->
+                <div class="glass">
+                    <div class="sensor-card-header">
+                        <h3 class="sensor-title">
+                            Relative Humidity
+                            <code class="sensor-code">RelativeHumidity</code>
+                        </h3>
+                        <div class="sensor-avg-row">
+                            <span class="sensor-avg-text">Latest: <span id="latest-humidity" class="avg-humidity-val">—</span> %</span>
+                        </div>
+                    </div>
+                    <div class="chart-height-wrapper">
+                        <canvas id="humidityChart"></canvas>
+                    </div>
+                    <p class="sensor-note" id="humidity-note">Loading…</p>
+                </div>
+
+                <!-- Radon (RadonEye) -->
+                <div class="glass">
+                    <div class="sensor-card-header">
+                        <h3 class="sensor-title">
+                            Radon &mdash; RadonEye
+                            <code class="sensor-code">RadonEye</code>
+                        </h3>
+                        <div class="sensor-avg-row">
+                            <span class="sensor-avg-text">Latest: <span id="latest-radoneye" class="avg-radiation-val">—</span> pCi/L</span>
+                        </div>
+                    </div>
+                    <div class="chart-height-wrapper">
+                        <canvas id="radonEyeChart"></canvas>
+                    </div>
+                    <p class="sensor-note" id="radoneye-note">Loading…</p>
+                </div>
+
+                <!-- Sword Spectrum -->
+                <div class="glass">
+                    <div class="sensor-card-header">
+                        <h3 class="sensor-title">
+                            Sword Spectrum
+                            <code class="sensor-code">SwordSpectrum</code>
+                        </h3>
+                        <div class="sensor-avg-row">
+                            <span class="sensor-avg-text">Latest: <span id="latest-sword" class="avg-moisture-val">—</span></span>
+                        </div>
+                    </div>
+                    <div class="chart-height-wrapper">
+                        <canvas id="swordChart"></canvas>
+                    </div>
+                    <p class="sensor-note" id="sword-note">Loading…</p>
+                </div>
+
+                <!-- Radon (Rad7) -->
+                <div class="glass">
+                    <div class="sensor-card-header">
+                        <h3 class="sensor-title">
+                            Radon &mdash; Rad7
+                            <code class="sensor-code">Rad7</code>
+                        </h3>
+                        <div class="sensor-avg-row">
+                            <span class="sensor-avg-text">Latest: <span id="latest-rad7" class="avg-radiation-val">—</span> pCi/L</span>
+                        </div>
+                    </div>
+                    <div class="chart-height-wrapper">
+                        <canvas id="rad7Chart"></canvas>
+                    </div>
+                    <p class="sensor-note" id="rad7-note">Loading…</p>
                 </div>
 
             </div>
