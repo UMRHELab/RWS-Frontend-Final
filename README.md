@@ -1,4 +1,4 @@
-# RWS-Lite
+# RWS
 
 Live sensor dashboard for the U-M Radiation Weather Station. Three locations: CS Facility roof, Room 1962, and the basement, plus a RAD8 radon monitor feeding the homepage radiation card. No framework, no build step — just HTML, CSS, and JS.
 
