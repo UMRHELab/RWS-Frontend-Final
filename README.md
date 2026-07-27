@@ -1,6 +1,6 @@
 # RWS
 
-shows live readings from 3 spots: CS Facility roof, Room 1962, and the basement. no react, no build step, no npm install, literally just html/css/js because why make it harder than it needs to be.
+shows live readings from 3 spots: CS Facility roof, Room 1962, and the basement. 
 
 ---
 
@@ -12,7 +12,7 @@ basically every station's hardware (RAD8, BME680, that CR1000 datalogger thing, 
 instruments  →  campus DB / dropbox csv  →  live-data.php  →  dashboard js (polls every 60s)
 ```
 
-if a station doesn't answer you just get `--` and a gap in the chart instead of some made up number, we're not trying to lie to anyone. it'll also keep showing the last good reading for like 15 min before it actually flips the badge to OFFLINE, so one bad poll doesn't nuke the whole page.
+if a station doesn't answer you just get `--` and a gap in the chart instead of some made up number, we're not trying to lie to anyone. it'll also keep showing the last good reading for like 15 min before it actually flips the badge to OFFLINE, so one bad poll doesn't destroy the whole page.
 
 ---
 
@@ -44,7 +44,7 @@ RWS.py         the main loop that actually runs on the pi
 
 **station page js** (loads in this order on `station.html`):
 
-- `station-config.js` — shared state + `STATIONS_CONFIG`, the giant object with literally everything different between the 3 stations (titles, metrics, colors, an `updateUI` fn). want a 4th station? just add an entry here, don't touch anything else
+- `station-config.js` — shared state + `STATIONS_CONFIG`, the giant object with literally everything different between the 3 stations (titles, metrics, colors, an `updateUI` fn). If you want to add a 4th station, just add an entry here, don't touch anything else
 - `station-charts.js` — makes the Chart.js line charts + the dashed "AVG" line plugin
 - `station-data.js` — `fetchAndUpdate()`, the main polling loop, grabs the latest reading and pushes new points onto the charts
 - `station-page.js` — report popup, csv export, page setup, and the startup code that reads `?station=` off the url
@@ -54,7 +54,7 @@ RWS.py         the main loop that actually runs on the pi
 - `dashboard-news.js` — pulls the highlights/news sections from two google sheets published as csv (no cms needed, just edit the sheet)
 - `dashboard-3d.js` — the spinny 3d building thing, purely for looks, doesn't affect anything else
 - `dashboard-charts.js` — the 6 little sparkline charts on the homepage
-- `dashboard-live.js` — the beefiest file, fetches all 4 station feeds at once, merges them with fallbacks (room sensor first, then RAD8), updates everything every minute
+- `dashboard-live.js` — fetches all 4 station feeds at once, merges them with fallbacks (room sensor first, then RAD8), updates everything every minute
 
 **`footer.js`** — shared across every page, loads the footer html, builds the mobile nav, keeps the sidebar station dots synced
 
@@ -68,6 +68,6 @@ RWS.py         the main loop that actually runs on the pi
 
 ## running this locally
 
-just open `public/index.html` in a browser, no server needed. the js hits the real live api directly so you'll see actual data as long as you're online (kinda nice not having to mock anything tbh).
+just open `public/index.html` in a browser, no server needed. the js hits the real live api directly so you'll see actual data as long as you're online (kind of nice not having to mock anything).
 
-`RWS.py` needs the actual pi hardware to run, no simulation mode anymore, no more fake numbers getting written to the db. if you're not on a pi with the sensors wired up, `import board` etc will just fail and that's expected.
+`RWS.py` needs the actual pi hardware to run, no simulation mode anymore, no more dummy numbers. `import board` etc will just fail and that's expected.
