@@ -1,58 +1,48 @@
 # RWS.py
 # This is the main script that runs on the Raspberry Pi.
 # It reads from all the sensors and saves everything to a local SQLite database.
-# If the Pi-only hardware libraries aren't available (wrong machine, nothing
-# plugged in, etc.) it just generates fake data instead so you can test
-# without the real hardware -- doesn't matter what OS you're running on.
+# Requires the real Pi hardware libraries -- there is no simulation/fake data
+# mode, so this only runs on a Pi with the sensors actually attached.
 
-import sys
-import random
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import time
 import logging
 import sqlite3
 import os
+import sys
 
 logging.basicConfig(level=logging.ERROR)
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# try to load the real Pi hardware libraries -- if that fails for any
-# reason, fall back to simulation mode instead of crashing
-try:
-    import board
-    from adafruit_ads1x15.ads1115 import ADS1115
-    from sensors.BME680 import BME680
-    from sensors.SoilMoisture import SoilMoisture
-    from sensors.SoilTemp import SoilTemperature
-    from sensors.WindDirection import WindDirection
-    from sensors.WindSpeedAndRain import WindSpeedRainfallSensor
-    from sensors.RadonEyeDriver import RadonEyeP2Tracker
-    from sensors.DIYgm import GeigerCounter
-    from sensors.UV import UV
-    SIMULATION_MODE = False
-except ImportError as e:
-    print(f"Pi hardware libraries not available ({e}) -- running in simulation mode")
-    SIMULATION_MODE = True
+import board
+from adafruit_ads1x15.ads1115 import ADS1115
+from sensors.BME680 import BME680
+from sensors.SoilMoisture import SoilMoisture
+from sensors.SoilTemp import SoilTemperature
+from sensors.WindDirection import WindDirection
+from sensors.WindSpeedAndRain import WindSpeedRainfallSensor
+from sensors.RadonEyeDriver import RadonEyeP2Tracker
+from sensors.DIYgm import GeigerCounter
+from sensors.UV import UV
 
 PI_NUM = 1        # which Pi this is running on
 DATA_INTERVAL = 5 # how often to take a reading (seconds)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATABASE_FILE = os.path.abspath(os.path.join(BASE_DIR, 'data/sensorData.db'))
 
-if not SIMULATION_MODE:
-    # connect to all the hardware
-    i2c = board.I2C()
-    ads = ADS1115(i2c)
-    BME_Indoor = BME680(I2C=i2c, address=0x77)
-    soilMoist = SoilMoisture(I2C=i2c, ads=ads, adc_channel=2)
-    soilTemp = SoilTemperature()
-    windRain = WindSpeedRainfallSensor()
-    windDirection = WindDirection(I2C=i2c, ADC=ads)
-    radon = RadonEyeP2Tracker(mac_address="F8:B1:82:B2:36:12")
-    geiger = GeigerCounter()
-    UVSensor = UV(I2C=i2c)
+# connect to all the hardware
+i2c = board.I2C()
+ads = ADS1115(i2c)
+BME_Indoor = BME680(I2C=i2c, address=0x77)
+soilMoist = SoilMoisture(I2C=i2c, ads=ads, adc_channel=2)
+soilTemp = SoilTemperature()
+windRain = WindSpeedRainfallSensor()
+windDirection = WindDirection(I2C=i2c, ADC=ads)
+radon = RadonEyeP2Tracker(mac_address="F8:B1:82:B2:36:12")
+geiger = GeigerCounter()
+UVSensor = UV(I2C=i2c)
 
 
 def init_db():
@@ -78,27 +68,6 @@ def init_db():
 def get_time():
     # always use Ann Arbor time
     return datetime.now(ZoneInfo("America/Detroit")).strftime("%Y-%m-%d %H:%M:%S")
-
-
-def generate_fake_reading():
-    # simulation mode -- makes up realistic-looking numbers so you can
-    # test without any real hardware attached
-    simulated_pulses = random.randint(1, 8)
-    return {
-        'i_temp': 56.0 + random.uniform(-1.0, 1.0),
-        'i_humidity': 48.0 + random.uniform(-1.5, 1.5),
-        'i_pressure': 1013.25,
-        'i_gas': 120.0,
-        'percentage': 32.5,
-        'temp': 54.0,
-        'mph': (simulated_pulses / 2) * 1.492,
-        'direction': "N",  # placeholder -- no real wind sensor to fake this from
-        'uv': 0,           # placeholder -- no real UV sensor to fake this from
-        'rainIN': random.choice([0.00, 0.00, 0.01, 0.00]),  # mostly dry, occasional small rain
-        'radon_level': 1.2,
-        'geiger_cpm': 14.0,
-        'lux': 450.0 + random.uniform(-30, 30),
-    }
 
 
 def read_sensors():
@@ -162,7 +131,7 @@ def main():
     try:
         while True:
             current_time = get_time()
-            reading = generate_fake_reading() if SIMULATION_MODE else read_sensors()
+            reading = read_sensors()
 
             print(f"\n[{current_time}]")
             print(f"  Temp: {reading['i_temp']:.1f}F | Wind: {reading['mph']:.2f} mph ({reading['direction']}) | UV: {reading['uv']}")

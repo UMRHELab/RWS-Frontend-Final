@@ -1,4 +1,46 @@
 /* ==========================================================================
+   Color tokens (read from dashboard-charts.js / dashboard-3d.js via
+   getComputedStyle instead of hardcoding hex values in JS)
+   ========================================================================== */
+
+:root {
+    /* Sparkline chart line colors, one per metric */
+    --dashboard-chart-temp: #c084fc;
+    --dashboard-chart-humidity: #22d3ee;
+    --dashboard-chart-wind: #4ade80;
+    --dashboard-chart-rain: #38bdf8;
+    --dashboard-chart-solar: #ffcb05;
+    --dashboard-chart-radon: #fb7185;
+
+    /* Baseline annotation line + label */
+    --dashboard-annotation-border: rgba(255, 255, 255, 0.18);
+    --dashboard-annotation-bg: rgba(15, 23, 42, 0.85);
+    --dashboard-annotation-label-color: #64748b;
+
+    /* Chart tooltip */
+    --dashboard-tooltip-bg: #0d1526;
+    --dashboard-tooltip-body-color: #94a3b8;
+
+    /* Chart axis grid/ticks */
+    --dashboard-tick-color: #334155;
+    --dashboard-tick-color-active: #ffffff;
+    --dashboard-grid-color: rgba(30, 41, 59, 0.4);
+    --dashboard-tick-color-y: #475569;
+
+    /* Three.js building visualization */
+    --three-scene-bg: #060a14;
+    --three-ambient-light: #ffffff;
+    --three-directional-light: #ffcb05;
+    --three-building-fill: #0c1428;
+    --three-building-wire: #22d3ee;
+    --three-node-cs-facility: #ffcb05;
+    --three-node-rm1962: #4ade80;
+    --three-node-basement: #f87171;
+    --three-grid-color-1: #1e2937;
+    --three-grid-color-2: #0f172a;
+}
+
+/* ==========================================================================
    Utilities (used across index.html components)
    ========================================================================== */
 
@@ -164,12 +206,6 @@
     margin: 0;
 }
 
-.section-row-header p {
-    font-size: 11px;
-    color: #94a3b8;
-    margin: 0.25rem 0 0 0;
-}
-
 .export-data-btn {
     background-color: rgba(30, 41, 59, 0.8);
     border: 1px solid #334155;
@@ -207,6 +243,15 @@
     background-color: #060a14;
     border-radius: 0.75rem;
     overflow: hidden;
+}
+
+.three-card-caption {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.5;
+    color: #94a3b8;
+    text-align: center;
+    margin: 0.75rem 0 0 0;
 }
 
 .station-list-col {
@@ -1321,4 +1366,66 @@
     color: #22c55e;
     width: 2.5rem;
     height: 2.5rem;
+}
+
+
+/* Radiation level colors.
+   dashboard-live.js swaps rad-normal / rad-elevated / rad-high on .rad-panel
+   and these rules do all the coloring. Defaults match the Normal level. */
+.rad-panel {
+    --rad-color: #22c55e;
+    --rad-bg: rgba(34, 197, 94, 0.07);
+    --rad-border: rgba(34, 197, 94, 0.35);
+}
+
+.rad-panel.rad-elevated {
+    --rad-color: #f59e0b;
+    --rad-bg: rgba(245, 158, 11, 0.07);
+    --rad-border: rgba(245, 158, 11, 0.35);
+}
+
+.rad-panel.rad-high {
+    --rad-color: #ef4444;
+    --rad-bg: rgba(239, 68, 68, 0.07);
+    --rad-border: rgba(239, 68, 68, 0.35);
+}
+
+.rad-panel {
+    background-color: var(--rad-bg);
+    border-color: var(--rad-border);
+}
+
+.rad-panel .rad-status-text,
+.rad-panel .rad-shield-icon,
+.rad-panel .rad-info-icon {
+    color: var(--rad-color);
+}
+
+.rad-panel .rad-shield-ring {
+    border-color: var(--rad-color);
+}
+
+.rad-panel .rad-info-chip {
+    background-color: var(--rad-bg);
+    border-color: var(--rad-border);
+}
+
+
+/* Online/offline station badges.
+   dashboard-live.js toggles is-online / is-offline on the badge box. */
+.is-online .station-status-label {
+    color: #34d399;
+}
+
+.is-online .station-dot {
+    background-color: #34d399;
+}
+
+.is-offline .station-status-label {
+    color: #94a3b8;
+}
+
+.is-offline .station-dot {
+    background-color: #64748b;
+    animation: none;
 }

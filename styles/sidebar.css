@@ -96,14 +96,6 @@
   background-color: rgba(30, 41, 59, 0.4);
 }
 
-.sidebar-link-pro {
-  color: #ffcb05;
-}
-
-.sidebar-link-pro:hover {
-  color: #ffd83d;
-}
-
 .sidebar-link-active,
 .nav-active {
   color: #ffffff;

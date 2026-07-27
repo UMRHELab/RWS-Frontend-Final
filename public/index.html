@@ -30,17 +30,13 @@
                 <img src="../icon/currentcon.png" alt="Current Conditions" class="sidebar-nav-icon"> Current Conditions
             </a>
 
-            <a href="pro_network.html" class="sidebar-link sidebar-link-pro">Pro Sensors Network</a>
-
             <a href="index.html#measures" class="sidebar-link"><img src="../icon/measure.png" alt="What we measure" class="sidebar-nav-icon"> What we measure</a>
             <a href="index.html#news"     class="sidebar-link"><img src="../icon/news.png" alt="News & Updates" class="sidebar-nav-icon"> News &amp; Updates</a>
-
-            <p class="sidebar-section-label">Lite Network</p>
 
             <div class="sidebar-dropdown">
                 <button onclick="toggleRadiationsMenu()" class="sidebar-dropdown-toggle">
                     <span class="sidebar-dropdown-label">
-                        Lite Network
+                        <img src="../icon/radiation.png" alt="Stations" class="sidebar-nav-icon"> Stations
                     </span>
                     <svg id="radiation-chevron" class="sidebar-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
@@ -48,15 +44,15 @@
                 </button>
 
                 <div id="radiations-submenu" class="sidebar-submenu hidden">
-                    <a href="cs-facility.html" class="sidebar-station-link inactive">
+                    <a href="station.html?station=cs-facility" class="sidebar-station-link inactive">
                         <span>CS Facility Aux Station</span>
                         <img src="../icon/online.png" alt="Online" class="sidebar-station-icon">
                     </a>
-                    <a href="basement.html" class="sidebar-station-link inactive">
+                    <a href="station.html?station=basement" class="sidebar-station-link inactive">
                         <span>Basement Aux Station</span>
                         <img src="../icon/online.png" alt="Online" class="sidebar-station-icon">
                     </a>
-                    <a href="rm1962.html" class="sidebar-station-link inactive">
+                    <a href="station.html?station=rm1962" class="sidebar-station-link inactive">
                         <span>Room 1962 Aux Station</span>
                         <img src="../icon/online.png" alt="Online" class="sidebar-station-icon">
                     </a>
@@ -85,7 +81,7 @@
                 <div class="local-weather-pill">
                     <span>Ann Arbor, MI</span>
                     <span class="separator"></span>
-                    <span class="temp-highlight" id="nav-temp">68°F</span>
+                    <span class="temp-highlight" id="nav-temp">—</span>
                 </div>
             </div>
         </header>
@@ -110,7 +106,7 @@
                             <circle cx="26" cy="26" r="10" fill="#ffcb05"/>
                         </svg>
                         <div>
-                            <div class="hero-temp-readout"><span id="weather-temp">56</span><span class="hero-temp-unit">°F</span></div>
+                            <div class="hero-temp-readout"><span id="weather-temp">—</span><span class="hero-temp-unit">°F</span></div>
                         </div>
                     </div>
                     <div class="hero-meta-titles">
@@ -135,7 +131,6 @@
                 <div class="section-row-header">
                     <div>
                         <h2>Stations Map</h2>
-                        <p>Drag to orbit · scroll to zoom · sensor nodes update in real-time.</p>
                     </div>
                     <button onclick="exportAllStationsCSV()" class="export-data-btn">
                         Export Data <span>▼</span>
@@ -145,6 +140,7 @@
                 <div class="map-grid">
                     <div class="three-card">
                         <div id="three-container" class="three-canvas"></div>
+                        <p class="three-card-caption">Drag to orbit<br>Scroll to zoom</p>
                     </div>
 
                     <div class="station-list-col">
@@ -160,7 +156,7 @@
                                     <span class="station-dot station-dot--roof animate-pulse"></span>
                                     <span class="station-status-label">—</span>
                                 </div>
-                                <a href="cs-facility.html" class="station-link-btn station-link-btn--roof">See Full Data →</a>
+                                <a href="station.html?station=cs-facility" class="station-link-btn station-link-btn--roof">See Full Data →</a>
                             </div>
                         </div>
 
@@ -176,7 +172,7 @@
                                     <span class="station-dot station-dot--indoor animate-pulse"></span>
                                     <span class="station-status-label">—</span>
                                 </div>
-                                <a href="rm1962.html" class="station-link-btn station-link-btn--indoor">See Full Data →</a>
+                                <a href="station.html?station=rm1962" class="station-link-btn station-link-btn--indoor">See Full Data →</a>
                             </div>
                         </div>
 
@@ -192,7 +188,7 @@
                                     <span class="station-dot station-dot--basement animate-pulse"></span>
                                     <span class="station-status-label">—</span>
                                 </div>
-                                <a href="basement.html" class="station-link-btn station-link-btn--basement">See Full Data →</a>
+                                <a href="station.html?station=basement" class="station-link-btn station-link-btn--basement">See Full Data →</a>
                             </div>
                         </div>
                     </div>
@@ -207,11 +203,11 @@
                     </div>
                     <div class="live-badge">
                         <span class="live-badge-dot"></span>
-                        Live • every 5s
+                        <span id="live-badge-text">Live</span>
                     </div>
                 </div>
 
-                <p class="env-pro-note">Pro sensors aren't actively updating right now &mdash; showing last available readings.</p>
+                <p class="env-pro-note">Loading latest sensor readings&hellip;</p>
 
                 <div class="env-grid">
                     <div class="sparkline-area">
@@ -443,7 +439,7 @@
             </div>
 
             <div class="rad-modal-body">
-                <p class="rad-intro">Background radiation is everywhere — it comes from the ground, the air, space, and even the materials buildings are made of. The numbers you see here are completely normal and not harmful.</p>
+                <p class="rad-intro">Background radiation is everywhere: it comes from the ground, the air, space, and even the materials buildings are made of. The numbers you see here are completely normal and not harmful.</p>
 
                 <h4 class="rad-section-title">Typical readings in Ann Arbor</h4>
                 <div class="season-grid">
@@ -513,7 +509,10 @@
     </div>
 
     <script src="js/footer.js"></script>
-    <script src="js/station-manager.js"></script>
-    <script src="js/dashboard.js"></script>
+    <!-- homepage code, split by topic. load order matters: live goes last -->
+    <script src="js/dashboard-news.js"></script>
+    <script src="js/dashboard-3d.js"></script>
+    <script src="js/dashboard-charts.js"></script>
+    <script src="js/dashboard-live.js"></script>
 </body>
 </html>
