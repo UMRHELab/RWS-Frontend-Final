@@ -22,6 +22,9 @@ let lastSensorTs = null;
 const MAX_PTS = 30;
 const HISTORY_INTERVAL_MS = 10 * 60 * 1000;
 let lastHistoryLogTime = 0;
+// True once the charts have been pre-filled from a data source's own history
+// (used when a sensor has gone quiet and would otherwise show one flat point)
+let historySeeded = false;
 // Display a formatted number value
 // Shows "--" when the value is unavailable
 function setReal(id, v, dec, suffix) {
