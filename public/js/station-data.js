@@ -26,6 +26,32 @@ function setLastReading(sensor, fromApi) {
             })
     );
 }
+// Pre-fill charts with a data source's own recent history (used when a sensor
+// has gone quiet and would otherwise only ever show one flat point). Runs once.
+function seedChartsFromHistory(readings, config) {
+    if (historySeeded) return;
+    if (!readings || readings.length === 0) return;
+    historySeeded = true;
+    for (const reading of readings) {
+        const time = new Date(String(reading.timestamp || '').replace(' ', 'T'));
+        const label = (isNaN(time) ? new Date() : time).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        const pushMap = config.updateUI(reading);
+        for (const key in config.metrics) {
+            const inst = instances[key];
+            const val = pushMap[key];
+            if (!inst || val == null) continue;
+            inst.data.labels.push(label);
+            inst.data.datasets[0].data.push(val);
+        }
+    }
+    for (const key in config.metrics) {
+        if (instances[key]) instances[key].update();
+    }
+}
 // Fetch new sensor readings and update the dashboard
 // Runs 5 sec to refresh cards, charts, and report data
 async function fetchAndUpdate() {
@@ -52,6 +78,13 @@ async function fetchAndUpdate() {
     const pushMap = config.updateUI(sensor);
     // Ignore duplicate readings from the same timestamp
     if (sensor.timestamp && sensor.timestamp === lastSensorTs) return;
+    // If the source included older readings (e.g. a frozen sensor), seed the
+    // charts with those first instead of plotting just this one point
+    if (sensor.history && sensor.history.length && !historySeeded) {
+        seedChartsFromHistory(sensor.history, config);
+        if (sensor.timestamp) lastSensorTs = sensor.timestamp;
+        return;
+    }
     if (sensor.timestamp) {
         lastSensorTs = sensor.timestamp;
     }
