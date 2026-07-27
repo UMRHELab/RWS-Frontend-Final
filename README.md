@@ -1,4 +1,4 @@
-# RWS-Lite
+# RWS
 
 shows live readings from 3 spots: CS Facility roof, Room 1962, and the basement. no react, no build step, no npm install, literally just html/css/js because why make it harder than it needs to be.
 
