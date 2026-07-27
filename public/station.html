@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CS Facility Auxiliary Station - RWS</title>
+    <title>Auxiliary Station - RWS</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="../styles/styles.css">
     <link rel="stylesheet" href="../styles/sidebar.css">
-    <link rel="stylesheet" href="../styles/cs-facility.css">
+    <link rel="stylesheet" href="../styles/stations.css">
     <link rel="stylesheet" href="../styles/footer.css">
 </head>
 <body>
-
 
 <!--  SIDEBAR  -->
 <aside class="sidebar">
@@ -30,10 +29,6 @@
             <img src="../icon/currentcon.png" alt="Current Conditions" class="sidebar-nav-icon"> Current Conditions
         </a>
 
-        <a href="pro_network.html" class="sidebar-link sidebar-link-pro">
-            Pro Sensors Network
-        </a>
-
         <a href="index.html#measures" class="sidebar-link">
             <img src="../icon/measure.png" alt="What we measure" class="sidebar-nav-icon"> What we measure
         </a>
@@ -41,12 +36,10 @@
             <img src="../icon/news.png" alt="News & Updates" class="sidebar-nav-icon"> News &amp; Updates
         </a>
 
-        <p class="sidebar-section-label">Lite Network</p>
-
         <div class="sidebar-dropdown">
             <button onclick="toggleRadiationsMenu()" class="sidebar-dropdown-toggle">
                 <span class="sidebar-dropdown-label">
-                    Lite Network
+                    <img src="../icon/radiation.png" alt="Stations" class="sidebar-nav-icon"> Stations
                 </span>
                 <svg id="radiation-chevron" class="sidebar-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
@@ -54,15 +47,15 @@
             </button>
 
             <div id="radiations-submenu" class="sidebar-submenu">
-                <a href="cs-facility.html" class="sidebar-station-link active">
+                <a href="station.html?station=cs-facility" id="sidelink-cs-facility" class="sidebar-station-link inactive">
                     <span>CS Facility Aux Station</span>
                     <img src="../icon/online.png" alt="Online" class="sidebar-station-icon">
                 </a>
-                <a href="basement.html" class="sidebar-station-link inactive">
+                <a href="station.html?station=basement" id="sidelink-basement" class="sidebar-station-link inactive">
                     <span>Basement Aux Station</span>
                     <img src="../icon/online.png" alt="Online" class="sidebar-station-icon">
                 </a>
-                <a href="rm1962.html" class="sidebar-station-link inactive">
+                <a href="station.html?station=rm1962" id="sidelink-rm1962" class="sidebar-station-link inactive">
                     <span>Room 1962 Aux Station</span>
                     <img src="../icon/online.png" alt="Online" class="sidebar-station-icon">
                 </a>
@@ -93,15 +86,15 @@
             <div class="local-weather-pill">
                 <span>📍 Ann Arbor, MI</span>
                 <span class="separator"></span>
-                <span class="temp-highlight" id="nav-temp">68°F</span>
+                <span class="temp-highlight" id="nav-temp">—</span>
             </div>
         </div>
     </header>
 
     <main class="workspace-container">
 
-        <!-- Hero Banner -->
-        <div class="station-hero-banner cs-hero">
+        <!-- Hero Banner (class + texts set per station by station-page.js) -->
+        <div class="station-hero-banner" id="station-hero">
             <div class="hero-identity-block">
 
                 <div class="hero-weather-summary">
@@ -119,14 +112,14 @@
                         <circle class="sun-core" cx="26" cy="26" r="10"/>
                     </svg>
                     <div>
-                        <div class="hero-temp-readout"><span id="weather-temp">56</span><span class="hero-temp-unit">°F</span></div>
+                        <div class="hero-temp-readout"><span id="weather-temp">—</span><span class="hero-temp-unit">°F</span></div>
                     </div>
                 </div>
 
                 <div class="hero-meta-titles">
-                    <h1>CS Facility Auxiliary Station</h1>
-                    <p class="subtitle">Roof Level · Real-time Environmental Monitoring</p>
-                    <p class="caption">University of Michigan North Campus perimeter sensor array.</p>
+                    <h1 id="station-title">Auxiliary Station</h1>
+                    <p class="subtitle" id="station-subtitle"></p>
+                    <p class="caption" id="station-caption"></p>
                 </div>
 
             </div>
@@ -140,25 +133,24 @@
         <!-- Data Grid -->
         <div class="workspace-grid">
 
-            <!-- Left Column: Charts -->
+            <!-- Left Column: Charts (cards revealed per station by station-page.js) -->
             <div class="primary-data-column">
 
                 <div class="control-strip">
                     <div>
                         <h2>Sensor Data Logs</h2>
-                        <p>Live from <code class="sensor-code">sensor_roof</code></p>
+                        <p>Live from <code class="sensor-code" id="station-db-code">—</code></p>
                         <p class="last-reading-stamp" id="last-reading">Last reading: —</p>
                     </div>
                     <button onclick="downloadAllCombinedCSV()" class="export-btn">Export CSV</button>
                 </div>
 
-                <!-- Air Temperature -->
-                <div class="glass">
+                <!-- Ambient / Indoor Temperature -->
+                <div class="glass" id="card-temperature" hidden>
                     <div class="sensor-card-header">
                         <h3 class="sensor-title">
-                            <img src="../icon/temp.png" alt="">
-                            Air Temperature
-                            <code class="sensor-code">ambient_temp</code>
+                            <img src="../icon/temp.png" alt=""> <span id="label-temperature">Ambient Temperature</span>
+                            <code class="sensor-code">indoor_temp</code>
                         </h3>
                         <div class="sensor-avg-row">
                             <span class="sensor-avg-text">Avg: <span id="avg-temp" class="avg-temp-val">—</span> °F</span>
@@ -171,12 +163,101 @@
                     <p class="sensor-note">Dashed line = rolling session average</p>
                 </div>
 
-                <!-- Wind Speed -->
-                <div class="glass">
+                <!-- Indoor Humidity -->
+                <div class="glass" id="card-humidity" hidden>
                     <div class="sensor-card-header">
                         <h3 class="sensor-title">
-                            <img src="../icon/wind.png" alt="">
-                            Wind Speed
+                            <img src="../icon/indoorhumidity.png" alt=""> <span id="label-humidity">Relative Humidity</span>
+                            <code class="sensor-code">indoor_humidity</code>
+                        </h3>
+                        <div class="sensor-avg-row">
+                            <span class="sensor-avg-text">Avg: <span id="avg-humidity" class="avg-humidity-val">—</span> %</span>
+                            <button onclick="openReportPopup('humidity')" class="sensor-view-btn">View Report</button>
+                        </div>
+                    </div>
+                    <div class="chart-height-wrapper">
+                        <canvas id="humidityChart"></canvas>
+                    </div>
+                    <p class="sensor-note">Dashed line = rolling session average</p>
+                </div>
+
+                <!-- Air Pressure -->
+                <div class="glass" id="card-pressure" hidden>
+                    <div class="sensor-card-header">
+                        <h3 class="sensor-title">
+                            <img src="../icon/airpressure.png" alt=""> <span id="label-pressure">Air Pressure</span>
+                            <code class="sensor-code">indoor_pressure</code>
+                        </h3>
+                        <div class="sensor-avg-row">
+                            <span class="sensor-avg-text">Avg: <span id="avg-pressure" class="avg-pressure-val">—</span> hPa</span>
+                            <button onclick="openReportPopup('pressure')" class="sensor-view-btn">View Report</button>
+                        </div>
+                    </div>
+                    <div class="chart-height-wrapper">
+                        <canvas id="pressureChart"></canvas>
+                    </div>
+                    <p class="sensor-note">Dashed line = rolling session average</p>
+                </div>
+
+                <!-- Radon Concentration -->
+                <div class="glass" id="card-radon" hidden>
+                    <div class="sensor-card-header">
+                        <h3 class="sensor-title">
+                            <img src="../icon/HERO/boxicons_radiation.png" alt=""> <span id="label-radon">Radon Concentration</span>
+                            <code class="sensor-code">radon_level_pci</code>
+                        </h3>
+                        <div class="sensor-avg-row">
+                            <span class="sensor-avg-text">Avg: <span id="avg-radon" class="avg-radon-val">—</span> pCi/L</span>
+                            <button onclick="openReportPopup('radon')" class="sensor-view-btn">View Report</button>
+                        </div>
+                    </div>
+                    <div class="chart-height-wrapper">
+                        <canvas id="radonChart"></canvas>
+                    </div>
+                    <p class="sensor-note">Dashed line = rolling session average · EPA action limit: 4.0 pCi/L</p>
+                </div>
+
+                <!-- Soil Moisture -->
+                <div class="glass" id="card-moisture" hidden>
+                    <div class="sensor-card-header">
+                        <h3 class="sensor-title">
+                            <img src="../icon/HERO/hugeicons_soil-moisture-field.png" alt=""> <span id="label-moisture">Soil Moisture</span>
+                            <code class="sensor-code">soil_moisture</code>
+                        </h3>
+                        <div class="sensor-avg-row">
+                            <span class="sensor-avg-text">Avg: <span id="avg-moisture" class="avg-moisture-val">—</span> %</span>
+                            <button onclick="openReportPopup('moisture')" class="sensor-view-btn">View Report</button>
+                        </div>
+                    </div>
+                    <div class="chart-height-wrapper">
+                        <canvas id="moistureChart"></canvas>
+                    </div>
+                    <p class="sensor-note">Dashed line = rolling session average</p>
+                </div>
+
+                <!-- Soil Temperature -->
+                <div class="glass" id="card-soiltemp" hidden>
+                    <div class="sensor-card-header">
+                        <h3 class="sensor-title">
+                            <img src="../icon/soil_temp.png" alt=""> <span id="label-soiltemp">Soil Temperature</span>
+                            <code class="sensor-code">soil_temperature</code>
+                        </h3>
+                        <div class="sensor-avg-row">
+                            <span class="sensor-avg-text">Avg: <span id="avg-soiltemp" class="avg-soiltemp-val">—</span> °F</span>
+                            <button onclick="openReportPopup('soiltemp')" class="sensor-view-btn">View Report</button>
+                        </div>
+                    </div>
+                    <div class="chart-height-wrapper">
+                        <canvas id="soiltempChart"></canvas>
+                    </div>
+                    <p class="sensor-note">Dashed line = rolling session average</p>
+                </div>
+
+                <!-- Wind Speed -->
+                <div class="glass" id="card-wind" hidden>
+                    <div class="sensor-card-header">
+                        <h3 class="sensor-title">
+                            <img src="../icon/wind.png" alt=""> <span id="label-wind">Wind Speed</span>
                             <code class="sensor-code">wind_speed</code>
                         </h3>
                         <div class="sensor-avg-row">
@@ -191,11 +272,10 @@
                 </div>
 
                 <!-- Rainfall -->
-                <div class="glass">
+                <div class="glass" id="card-rainfall" hidden>
                     <div class="sensor-card-header">
                         <h3 class="sensor-title">
-                            <img src="../icon/cloud.png" alt="">
-                            Rainfall
+                            <img src="../icon/cloud.png" alt=""> <span id="label-rainfall">Rainfall Volume</span>
                             <code class="sensor-code">rainfall</code>
                         </h3>
                         <div class="sensor-avg-row">
@@ -209,12 +289,11 @@
                     <p class="sensor-note">Dashed line = rolling session average</p>
                 </div>
 
-                <!-- Solar Radiation -->
-                <div class="glass">
+                <!-- Solar -->
+                <div class="glass" id="card-solar" hidden>
                     <div class="sensor-card-header">
                         <h3 class="sensor-title">
-                            <img src="../icon/mingcute_sun-line.png" alt="">
-                            Solar Radiation
+                            <img src="../icon/mingcute_sun-line.png" alt=""> <span id="label-solar">Solar Density</span>
                             <code class="sensor-code">solar_radiation / lux</code>
                         </h3>
                         <div class="sensor-avg-row">
@@ -230,68 +309,75 @@
 
             </div>
 
-            <!-- Right Column: Conditions + Camera + Info -->
+            <!-- Right Column: Conditions + Info (items revealed per station) -->
             <div class="sidebar-data-column">
 
                 <div class="readout-card">
                     <h3 class="section-header">Current Conditions</h3>
 
-                    <div class="readout-item">
+                    <div class="readout-item" id="readout-temperature" hidden>
                         <div class="readout-value val-temp" id="current-temp">--</div>
-                        <div class="readout-caption">°F · Air Temperature</div>
+                        <div class="readout-caption">°F · Temperature</div>
                     </div>
 
-                    <div class="readout-divider"></div>
+                    <div class="readout-item" id="readout-humidity" hidden>
+                        <div class="readout-value val-humidity" id="current-humidity">--</div>
+                        <div class="readout-caption">% · Humidity</div>
+                    </div>
 
-                    <div class="readout-item">
+                    <div class="readout-item" id="readout-pressure" hidden>
+                        <div class="readout-value val-pressure" id="current-pressure">--</div>
+                        <div class="readout-caption">hPa · Air Pressure</div>
+                    </div>
+
+                    <div class="readout-item" id="readout-radon" hidden>
+                        <div class="readout-value val-radon" id="current-radon">--</div>
+                        <div class="readout-caption">pCi/L · Radon</div>
+                    </div>
+
+                    <div class="readout-item" id="readout-moisture" hidden>
+                        <div class="readout-value val-radiation" id="current-moisture">--</div>
+                        <div class="readout-caption">% · Soil Moisture</div>
+                    </div>
+
+                    <div class="readout-item" id="readout-soiltemp" hidden>
+                        <div class="readout-value val-soiltemp" id="current-soiltemp">--</div>
+                        <div class="readout-caption">°F · Soil Temp</div>
+                    </div>
+
+                    <div class="readout-item" id="readout-wind" hidden>
                         <div class="readout-value val-wind" id="current-wind">--</div>
                         <div class="readout-caption">mph · Wind Speed</div>
                     </div>
 
-                    <div class="readout-divider"></div>
-
-                    <div class="readout-item">
+                    <div class="readout-item" id="readout-rainfall" hidden>
                         <div class="readout-value val-rain" id="current-rain">--</div>
                         <div class="readout-caption">in · Rainfall Today</div>
                     </div>
 
-                    <div class="readout-divider"></div>
-
-                    <div class="readout-item">
+                    <div class="readout-item" id="readout-solar" hidden>
                         <div class="readout-value val-solar" id="current-solar">--</div>
                         <div class="readout-caption">lx · Solar Radiation</div>
                     </div>
-                </div>
-
-                <div class="glass">
-                    <div class="camera-card-header">
-                        <h3 class="camera-card-title">Live Camera Feed</h3>
-                        <span class="camera-live-badge">Live</span>
-                    </div>
-                    <div class="camera-viewport">
-                        <img
-                            src="images/Screenshot 2026-05-30 at 9.43.34 PM 1.png"
-                            onerror="this.src= 'images/Screenshot 2026-05-30 at 9.43.34 PM 1.png'"
-                            alt="CS Facility Live View"
-                            class="camera-img"
-                        >
-                    </div>
-                    <p class="camera-note">Roof Node · Ann Arbor, MI</p>
                 </div>
 
                 <div class="station-info-card">
                     <h3>Station Info</h3>
                     <div class="info-row">
                         <span class="info-label">DB Table</span>
-                        <code class="info-value-gold">sensor_roof</code>
+                        <code class="info-value-gold" id="info-db-table">—</code>
                     </div>
                     <div class="info-row">
                         <span class="info-label">Location</span>
-                        <span class="info-value">Roof Level</span>
+                        <span class="info-value" id="info-location">—</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">Poll Rate</span>
-                        <span class="info-value">5s</span>
+                        <span class="info-value">1 min</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Instruments</span>
+                        <span class="info-value" id="info-instruments">—</span>
                     </div>
                 </div>
 
@@ -323,7 +409,7 @@
             <div class="pdf-header-strip">
                 <div>
                     <h2 id="modal-metric-title">—</h2>
-                    <p>CS Facility Auxiliary Station · Climate Analytics</p>
+                    <p id="modal-station-name">Auxiliary Station</p>
                 </div>
                 <div class="pdf-header-meta-right">
                     <div class="pdf-page-counter">Page 1 of 1</div>
@@ -367,7 +453,7 @@
             <div>
                 <h4 class="pdf-table-title">
                     <span>Historical Readings Ledger</span>
-                    <span class="subtitle">Interval: 5s polling</span>
+                    <span class="subtitle">New rows as instruments report</span>
                 </h4>
                 <div class="pdf-table-wrapper">
                     <table class="pdf-data-table">
@@ -389,7 +475,12 @@
 
 
     <script src="js/footer.js"></script>
-<script src="js/station-manager.js"></script>
+    <!-- the station code, split by topic. load order matters:
+         config first (shared variables), page last (startup) -->
+    <script src="js/station-config.js"></script>
+    <script src="js/station-charts.js"></script>
+    <script src="js/station-data.js"></script>
+    <script src="js/station-page.js"></script>
 
 </body>
 </html>

@@ -1,78 +1,73 @@
-# RWS
+# RWS-Lite
 
-Live sensor dashboard for the U-M Radiation Weather Station. Three locations: CS Facility roof, Room 1962, and the basement, plus a RAD8 radon monitor feeding the homepage radiation card. No framework, no build step — just HTML, CSS, and JS.
-
-Live at: https://dev-engin-rws.pantheonsite.io/rws-lite/ (dev environment, deployed through the engin-rws Pantheon site)
+shows live readings from 3 spots: CS Facility roof, Room 1962, and the basement. no react, no build step, no npm install, literally just html/css/js because why make it harder than it needs to be.
 
 ---
 
-## How it works
+## how it works (kinda)
 
-The Raspberry Pi runs `RWS.py` on a loop, reads all the sensors every 5 seconds, and saves to a local SQLite database. That data gets synced up to the `rws_data` database on webapps2 (MiServer), and the dashboard pulls from `live-data.php` every 5 seconds to update the charts.
+basically every station's hardware (RAD8, BME680, that CR1000 datalogger thing, etc) logs a reading every ~10 min. `live-data.php` grabs the latest one and hands it back as JSON — it tries the campus mysql db first, and if that's not reachable it falls back to a dropbox csv that gets synced from the lab computer (RAD8 and room 1962 data mainly). the dashboard js just polls that endpoint once a minute and shovels the numbers into the cards/charts/badges.
 
 ```
-Sensors → Pi (RWS.py) → MySQL rws_data @ webapps2 → live-data.php → Dashboard
+instruments  →  campus DB / dropbox csv  →  live-data.php  →  dashboard js (polls every 60s)
 ```
 
-The dashboard shows the newest real row it can get, and it's honest about freshness: every station card has an ONLINE/OFFLINE badge based on whether the station reported within the last hour, and each station page shows a "Last reading" date. If a station goes quiet you see its last known data with a stamp, not made-up numbers. See `BRINGING_STATIONS_ONLINE.md` for how to revive a dead station.
-
-Dev updates and news on the homepage come from shared Google Sheets — add a row in the sheet and it shows up on the site, no code changes needed.
+if a station doesn't answer you just get `--` and a gap in the chart instead of some made up number, we're not trying to lie to anyone. it'll also keep showing the last good reading for like 15 min before it actually flips the badge to OFFLINE, so one bad poll doesn't nuke the whole page.
 
 ---
 
-## What's in here
+## what's in here
 
 ```
-public/      HTML pages + JS
-styles/      CSS, one file per page (styles.css also has the mobile layout)
-sensors/     Python drivers for each sensor
-database/    DB helpers and schema
-data/        Local SQLite file for testing
-app/         Local Flask server for testing, not used by the live site
-RWS.py       Main sensor loop, runs on the Pi
+public/js/     all the dashboard + station page js (see below, too many files to list twice)
+public/*.html  index.html (homepage), station.html (the shared station page for all 3 stations)
+styles/        css, split by page/section
+sensors/       python driver per sensor
+database/      db helper + schema stuff
+data/          local sqlite db for testing
+app/           tiny flask dev server thing (reads data/sensorData.db)
+RWS.py         the main loop that actually runs on the pi
 ```
 
----
-
-## The pages
-
-- `index.html` — homepage: station map, environment overview, radiation card, highlights and news
-- `cs-facility.html` — roof: temp, wind, solar, rainfall
-- `rm1962.html` — room 1962: temp, humidity, radiation, air pressure
-- `basement.html` — basement: radon, temp, soil moisture, soil temp
-
-The site works on phones too: below 820px the sidebar becomes a hamburger menu and everything stacks into one column.
+`live-data.php` (the actual api the site calls) is NOT in this folder, it lives up at the site root since it's shared with the rest of the wordpress site. easy to forget that when you're looking for it.
 
 ---
 
-## Files worth knowing
+## the pages
 
-**`station-manager.js`** — shared script for all three station pages. figures out which station it's on, polls the API, updates charts, shows the last-reading stamp, handles CSV export and the report popup.
-
-**`dashboard.js`** — powers the homepage. station map, environment overview, google sheet feeds for highlights and news, the radiation card (colors itself green/orange/red against the EPA 4 pCi/L action level), and the online/offline badges.
-
-**`footer.js`** — loads the shared footer, runs the mobile hamburger menu, and swaps the sidebar station icons between online and offline.
-
-**`live-data.php`** — queries the database and returns the latest sensor row as JSON. usage: `?station=rm1962` (also `cs-facility`, `basement`, `rad8`). lives at the root of the engin-rws Pantheon repo, not in this one, so there's only one copy to keep current
-
-**`RWS.py`** — runs on the Pi, reads sensors, writes to SQLite.
-
-**`sensors/`** — one file per sensor (BME680, soil moisture, soil temp, wind/rain, wind direction, Geiger counter, RadonEye Bluetooth).
+- `index.html` — homepage, all 3 stations at a glance
+- `station.html?station=basement|cs-facility|rm1962` — one page, url param picks which station config to load. the old `basement.html`/`cs-facility.html`/`rm1962.html` redirect stubs got deleted since they weren't doing anything anymore, so old bookmarked links to those will just 404 now
 
 ---
 
-## Running locally
+## files worth knowing (aka where tf is the code)
 
-Just open `public/index.html` in a browser (or serve the folder from VS Code). The pages call the live API on Pantheon directly, so you'll see the same data as the deployed site. If you want to test `RWS.py` on a Mac:
+**station page js** (loads in this order on `station.html`):
 
-```bash
-python RWS.py
-```
+- `station-config.js` — shared state + `STATIONS_CONFIG`, the giant object with literally everything different between the 3 stations (titles, metrics, colors, an `updateUI` fn). want a 4th station? just add an entry here, don't touch anything else
+- `station-charts.js` — makes the Chart.js line charts + the dashed "AVG" line plugin
+- `station-data.js` — `fetchAndUpdate()`, the main polling loop, grabs the latest reading and pushes new points onto the charts
+- `station-page.js` — report popup, csv export, page setup, and the startup code that reads `?station=` off the url
 
-It'll run in simulation mode automatically.
+**homepage js**:
+
+- `dashboard-news.js` — pulls the highlights/news sections from two google sheets published as csv (no cms needed, just edit the sheet)
+- `dashboard-3d.js` — the spinny 3d building thing, purely for looks, doesn't affect anything else
+- `dashboard-charts.js` — the 6 little sparkline charts on the homepage
+- `dashboard-live.js` — the beefiest file, fetches all 4 station feeds at once, merges them with fallbacks (room sensor first, then RAD8), updates everything every minute
+
+**`footer.js`** — shared across every page, loads the footer html, builds the mobile nav, keeps the sidebar station dots synced
+
+**`live-data.php`** — queries the campus db or the RAD8 dropbox csv, spits back the latest row as json. `?station=rm1962` etc. again, this lives at the site root not in here
+
+**`RWS.py`** — runs on the pi, reads all the sensors, writes to sqlite
+
+**`sensors/`** — one file per sensor: BME680, soil moisture, soil temp, wind/rain, wind direction, geiger counter, RadonEye bluetooth thing
 
 ---
 
-## Deploying
+## running this locally
 
-The site is a folder (`rws-lite/`) inside the engin-rws Pantheon repo. Copy changed files there, commit, and `git push origin master` — Pantheon's Dev environment picks it up automatically. Promote Dev → Test → Live from the Pantheon dashboard when ready.
+just open `public/index.html` in a browser, no server needed. the js hits the real live api directly so you'll see actual data as long as you're online (kinda nice not having to mock anything tbh).
+
+`RWS.py` needs the actual pi hardware to run, no simulation mode anymore, no more fake numbers getting written to the db. if you're not on a pi with the sensors wired up, `import board` etc will just fail and that's expected.
