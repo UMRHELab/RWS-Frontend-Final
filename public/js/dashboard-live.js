@@ -153,9 +153,7 @@ function setEnvNote(rad8, room, roof) {
     }
 
     let roofNote = ', with wind/rain/solar data appearing once the rooftop logger connection is available';
-    if (roof && roof.source === 'roof-static-snapshot') {
-        roofNote = ', wind/rain/solar is a fixed rooftop snapshot from Nov 2023, not live';
-    } else if (roof) {
+    if (roof) {
         roofNote = '';
     }
 
