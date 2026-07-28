@@ -148,7 +148,7 @@ function setEnvNote(rad8, room, roof) {
     }
 
     let src = 'RAD8 monitor (main lab)';
-    if (room && room.source !== 'rad8-fallback') {
+    if (room) {
         src = 'RWS-Lite (Rm 1962)';
     }
 
@@ -164,12 +164,11 @@ function setLiveBadge(text) {
     setElementText('live-badge-text', text);
 }
 
-// Fallback state for temporary connection issues
-// Keeps the last successful reading so a single failed poll does not
-// clear the page. Readings older than 15 minutes are discarded.
+// Fallback state for connection issues - keeps the last successful reading
+// on screen indefinitely instead of clearing the page when a poll fails.
+// The live badge and "last reading" time are left untouched too, so the
+// page never hides how old the frozen reading actually is.
 let lastGoodSensor = null;
-let lastGoodAt = 0;
-const LAST_GOOD_MAX_AGE_MS = 15 * 60 * 1000;
 
 // Timestamp of the newest reading already drawn on the charts
 // New points are only added when the instruments log a new reading
@@ -367,32 +366,25 @@ async function updateLiveChart() {
 
         sensor = mergeSensorReading(stations);
 
-        // rm1962/rad8 are real live sensors. roof (cs-facility) falls back to a
-        // fixed historical snapshot whenever Pantheon can't reach the campus db,
-        // which is always the case here - so its timestamp alone should never
-        // be shown as a "Live" reading.
-        if (rad8 || room) {
-            const readAt = parseDbTime(sensor.timestamp);
-            if (readAt) {
-                setLiveBadge('Live • last reading ' + readAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
-            } else {
-                setLiveBadge('Live');
-            }
+        // Every station reads straight from the campus db now, with no fake
+        // fallback data - so reaching this point (past the "nothing answered
+        // at all" check above) always means at least one genuinely live reading.
+        const readAt = parseDbTime(sensor.timestamp);
+        if (readAt) {
+            setLiveBadge('Live • last reading ' + readAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
         } else {
-            setLiveBadge('No live sensors reporting');
+            setLiveBadge('Live');
         }
 
         lastGoodSensor = sensor;
-        lastGoodAt = Date.now();
     } catch (e) {
-        // Poll failed — reuse the last good reading if it is recent enough
-        if (lastGoodSensor && (Date.now() - lastGoodAt) < LAST_GOOD_MAX_AGE_MS) {
+        // Poll failed - keep showing the last good reading instead of
+        // clearing the page. If there's never been a good reading yet,
+        // just leave the page as-is and try again next poll.
+        if (lastGoodSensor) {
             sensor = lastGoodSensor;
         } else {
-            // Nothing to show — go offline instead of inventing numbers
-            console.warn('Sensor fetch failed, no recent data to show:', e);
-            setEnvNote(null, null, null);
-            setLiveBadge('Offline');
+            console.warn('Sensor fetch failed, no data to show yet:', e);
             return;
         }
     }

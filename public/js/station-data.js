@@ -3,14 +3,14 @@
 // Data source: live-data.php
 // Display the station's latest reported timestamp
 // Supports both SQL datetime strings and Unix epoch timestamps
-function setLastReading(sensor, fromApi) {
+function setLastReading(sensor) {
     const el = document.getElementById('last-reading');
     if (!el) return;
 
     let timestamp = null;
     if (sensor) timestamp = sensor.timestamp;
 
-    if (!fromApi || !timestamp) {
+    if (!timestamp) {
         el.textContent = 'Last reading: unavailable (no connection to station database)';
         return;
     }
@@ -91,15 +91,16 @@ async function fetchAndUpdate() {
     } catch (_) {
         // Keep sensor empty when the request fails
     }
-    // No sensor data available
-    // Avoid displaying incorrect values or empty chart points
+    // No sensor data available - leave the page exactly as it was on the
+    // last successful poll (numbers, charts, and the "Last reading" stamp
+    // all stay put) instead of clearing everything to a blank/unavailable
+    // state. The timestamp itself never gets touched here, so it keeps
+    // telling the truth about how old the frozen reading actually is.
     if (!sensor) {
-        setLastReading(null, false);
-        setStaticSnapshotNote(null);
         return;
     }
     // Update current sensor values displayed on the page
-    setLastReading(sensor, true);
+    setLastReading(sensor);
     setStaticSnapshotNote(sensor);
     const pushMap = config.updateUI(sensor);
     // Ignore duplicate readings from the same timestamp
