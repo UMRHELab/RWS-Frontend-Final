@@ -6,25 +6,51 @@
 function setLastReading(sensor, fromApi) {
     const el = document.getElementById('last-reading');
     if (!el) return;
-    if (!fromApi || !sensor?.timestamp) {
+
+    let timestamp = null;
+    if (sensor) timestamp = sensor.timestamp;
+
+    if (!fromApi || !timestamp) {
         el.textContent = 'Last reading: unavailable (no connection to station database)';
         return;
     }
-    const raw = String(sensor.timestamp).trim();
-    const d = /^\d+(\.\d+)?$/.test(raw)
-        ? new Date(parseFloat(raw) * 1000)
-        : new Date(raw.replace(' ', 'T'));
-    el.textContent = 'Last reading: ' + (
-        isNaN(d)
-            ? raw
-            : d.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit'
-            })
-    );
+
+    const raw = String(timestamp).trim();
+    let d;
+    if (/^\d+(\.\d+)?$/.test(raw)) {
+        d = new Date(parseFloat(raw) * 1000);
+    } else {
+        d = new Date(raw.replace(' ', 'T'));
+    }
+
+    let display = raw;
+    if (!isNaN(d)) {
+        display = d.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit'
+        });
+    }
+    el.textContent = 'Last reading: ' + display;
+}
+// Show a visible warning when the data on screen isn't a live reading --
+// wording depends on which non-live source is currently being shown
+function setStaticSnapshotNote(sensor) {
+    const el = document.getElementById('static-snapshot-note');
+    if (!el) return;
+
+    let message = '';
+    if (sensor && sensor.source === 'roof-static-snapshot') {
+        message = 'Not live — the rooftop logger has no live connection.';
+    }
+    if (sensor && sensor.source === 'rwslite-stale') {
+        message = 'Data is not updating yet — showing the last 20 readings from before it stopped.';
+    }
+
+    el.textContent = message;
+    el.hidden = message === '';
 }
 // Pre-fill charts with a data source's own recent history (used when a sensor
 // has gone quiet and would otherwise only ever show one flat point). Runs once.
@@ -33,8 +59,9 @@ function seedChartsFromHistory(readings, config) {
     if (!readings || readings.length === 0) return;
     historySeeded = true;
     for (const reading of readings) {
-        const time = new Date(String(reading.timestamp || '').replace(' ', 'T'));
-        const label = (isNaN(time) ? new Date() : time).toLocaleTimeString([], {
+        let time = new Date(String(reading.timestamp || '').replace(' ', 'T'));
+        if (isNaN(time)) time = new Date();
+        const label = time.toLocaleTimeString([], {
             hour: '2-digit',
             minute: '2-digit',
             second: '2-digit'
@@ -71,10 +98,12 @@ async function fetchAndUpdate() {
     // Avoid displaying incorrect values or empty chart points
     if (!sensor) {
         setLastReading(null, false);
+        setStaticSnapshotNote(null);
         return;
     }
     // Update current sensor values displayed on the page
     setLastReading(sensor, true);
+    setStaticSnapshotNote(sensor);
     const pushMap = config.updateUI(sensor);
     // Ignore duplicate readings from the same timestamp
     if (sensor.timestamp && sensor.timestamp === lastSensorTs) return;
@@ -101,16 +130,19 @@ async function fetchAndUpdate() {
     });
     const keys = Object.keys(config.metrics);
     const first = instances[keys[0]];
-    const labels = first?.data.labels;
+    let labels = [];
+    if (first) labels = first.data.labels;
     // Prevent duplicate chart entries for the same timestamp
     if (!first || !labels.length || labels[labels.length - 1] !== ts) {
-        keys.forEach(key => {
+        for (const key of keys) {
             const inst = instances[key];
             const metric = config.metrics[key];
-            if (!inst) return;
+            if (!inst) continue;
+
             // Add new data point to chart
             // Missing values remain empty instead of displaying as zero
-            const val = pushMap[key] ?? null;
+            let val = pushMap[key];
+            if (val === undefined) val = null;
             inst.data.labels.push(ts);
             inst.data.datasets[0].data.push(val);
             // Keep chart size limited to recent readings
@@ -120,27 +152,29 @@ async function fetchAndUpdate() {
             }
             // Store periodic history points for reports
             if (now.getTime() - lastHistoryLogTime >= HISTORY_INTERVAL_MS) {
-                history[key].push({
-                    ts,
-                    val,
-                    t: now.getTime()
-                });
+                history[key].push({ ts: ts, val: val, t: now.getTime() });
                 if (history[key].length > MAX_PTS) {
                     history[key].shift();
                 }
             }
             // Calculate and display the current chart average
-            const vals = inst.data.datasets[0].data
-                .filter(v => !isNaN(v) && v !== null);
-            const avg = vals.length
-                ? vals.reduce((a, b) => a + b, 0) / vals.length
-                : 0;
+            let sum = 0;
+            let count = 0;
+            for (const v of inst.data.datasets[0].data) {
+                if (v !== null && !isNaN(v)) {
+                    sum += v;
+                    count++;
+                }
+            }
+            let avg = 0;
+            if (count > 0) avg = sum / count;
+
             const avgEl = document.getElementById(metric.avgId);
             if (avgEl) {
                 avgEl.textContent = avg.toFixed(metric.dec);
             }
             inst.update();
-        });
+        }
         // Save the latest history timestamp
         if (now.getTime() - lastHistoryLogTime >= HISTORY_INTERVAL_MS) {
             lastHistoryLogTime = now.getTime();

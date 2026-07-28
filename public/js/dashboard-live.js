@@ -32,6 +32,12 @@ function setGreeting() {
 }
 setGreeting();
 
+// Show text in an element if it exists
+function setElementText(id, text) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+}
+
 // Radiation status display
 // Updates the radiation card text and level class based on current radon levels
 // Thresholds follow the EPA action level reference of 4 pCi/L
@@ -44,23 +50,47 @@ const RADON_LEVELS = [
 
 function setRadiationStatus(pci) {
     if (pci == null || isNaN(pci)) return;
-    const lvl = RADON_LEVELS.find(l => pci < l.below);
 
-    const set = (id, text) => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = text;
-    };
+    let lvl = null;
+    for (const level of RADON_LEVELS) {
+        if (pci < level.below) {
+            lvl = level;
+            break;
+        }
+    }
+
     // JS only updates the text — the colors come from css
-    set('rad-status-text', lvl.label);
-    set('rad-info-title', lvl.title);
-    set('rad-info-text', lvl.text);
-    set('rad-range-text', pci < 4 ? 'Typical background radiation' : 'Higher than typical background');
+    setElementText('rad-status-text', lvl.label);
+    setElementText('rad-info-title', lvl.title);
+    setElementText('rad-info-text', lvl.text);
+
+    let rangeText = 'Higher than typical background';
+    if (pci < 4) {
+        rangeText = 'Typical background radiation';
+    }
+    setElementText('rad-range-text', rangeText);
 
     // Swap the level class on the panel, css does the rest
     const panel = document.querySelector('.rad-panel');
     if (panel) {
-        panel.classList.remove('rad-normal', 'rad-elevated', 'rad-high');
+        panel.classList.remove('rad-normal', 'rad-elevated', 'rad-high', 'rad-unavailable');
         panel.classList.add(lvl.cls);
+    }
+}
+
+// Shown instead of setRadiationStatus() when no radon sensor is currently
+// reporting, so the card doesn't keep showing a leftover "Normal" reading
+function setRadiationUnavailable() {
+    setElementText('current-rad', '—');
+    setElementText('rad-status-text', 'No data');
+    setElementText('rad-info-title', 'No reading available.');
+    setElementText('rad-info-text', 'Waiting for a radon sensor to report.');
+    setElementText('rad-range-text', 'No radon sensor is currently reporting');
+
+    const panel = document.querySelector('.rad-panel');
+    if (panel) {
+        panel.classList.remove('rad-normal', 'rad-elevated', 'rad-high');
+        panel.classList.add('rad-unavailable');
     }
 }
 
@@ -73,22 +103,38 @@ const ONLINE_MAX_AGE_MS = 60 * 60 * 1000;
 function parseDbTime(raw) {
     if (raw == null) return null;
     const s = String(raw).trim();
-    const d = /^\d+(\.\d+)?$/.test(s)
-        ? new Date(parseFloat(s) * 1000)
-        : new Date(s.replace(' ', 'T'));
-    return isNaN(d) ? null : d;
+
+    let d;
+    if (/^\d+(\.\d+)?$/.test(s)) {
+        d = new Date(parseFloat(s) * 1000);
+    } else {
+        d = new Date(s.replace(' ', 'T'));
+    }
+    if (isNaN(d)) return null;
+    return d;
 }
 
 function setStationBadge(id, data) {
     const box = document.getElementById(id);
     if (!box) return;
-    const t = parseDbTime(data?.timestamp);
+
+    let timestamp = null;
+    if (data) timestamp = data.timestamp;
+    const t = parseDbTime(timestamp);
     const online = !!t && (Date.now() - t.getTime()) < ONLINE_MAX_AGE_MS;
+
     // Colors and the pulse animation come from css via these classes
     box.classList.toggle('is-online', online);
     box.classList.toggle('is-offline', !online);
+
     const label = box.querySelector('.station-status-label');
-    if (label) label.textContent = online ? 'ONLINE' : 'OFFLINE';
+    if (label) {
+        if (online) {
+            label.textContent = 'ONLINE';
+        } else {
+            label.textContent = 'OFFLINE';
+        }
+    }
 }
 
 // Update environment overview message based on available sensors
@@ -101,14 +147,23 @@ function setEnvNote(rad8, room, roof) {
         return;
     }
 
-    const src = (room && room.source !== 'rad8-fallback') ? 'RWS-Lite (Rm 1962)' : 'RAD8 monitor (main lab)';
-    const missing = roof ? '' : ', with wind/rain/solar data appearing once the rooftop logger connection is available';
-    note.textContent = `Live readings from the ${src}${missing}.`;
+    let src = 'RAD8 monitor (main lab)';
+    if (room && room.source !== 'rad8-fallback') {
+        src = 'RWS-Lite (Rm 1962)';
+    }
+
+    let roofNote = ', with wind/rain/solar data appearing once the rooftop logger connection is available';
+    if (roof && roof.source === 'roof-static-snapshot') {
+        roofNote = ', wind/rain/solar is a fixed rooftop snapshot from Nov 2023, not live';
+    } else if (roof) {
+        roofNote = '';
+    }
+
+    note.textContent = `Live readings from the ${src}${roofNote}.`;
 }
 
 function setLiveBadge(text) {
-    const el = document.getElementById('live-badge-text');
-    if (el) el.textContent = text;
+    setElementText('live-badge-text', text);
 }
 
 // Fallback state for temporary connection issues
@@ -134,7 +189,8 @@ function seedChartsFromHistory(history) {
     chartsSeeded = true;
 
     for (const reading of history) {
-        const time = parseDbTime(reading.timestamp) || new Date();
+        let time = parseDbTime(reading.timestamp);
+        if (!time) time = new Date();
         const label = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         addSeedPoint('temp', label, reading.ambient_temp_f);
         addSeedPoint('humidity', label, reading.relative_humidity);
@@ -178,26 +234,51 @@ async function fetchAllStations() {
     return { room, roof, rad8, basement };
 }
 
+// Reads one field from a sensor reading, or null if the sensor is missing
+function fromSensor(sensor, field) {
+    if (sensor && sensor[field] != null) return sensor[field];
+    return null;
+}
+
 // Combine the separate station feeds into one reading for the homepage.
 // The RAD8 (Dropbox CSV) backs up the room sensor since it's in the same room.
-function mergeSensorReading({ room, roof, rad8 }) {
+function mergeSensorReading(stations) {
+    const room = stations.room;
+    const roof = stations.roof;
+    const rad8 = stations.rad8;
+
+    let timestamp = fromSensor(rad8, 'timestamp');
+    if (timestamp == null) timestamp = fromSensor(room, 'timestamp');
+    if (timestamp == null) timestamp = fromSensor(roof, 'timestamp');
+
+    let indoorTemp = fromSensor(room, 'indoor_temp');
+    if (indoorTemp == null) indoorTemp = fromSensor(rad8, 'ambient_temp_f');
+
+    let indoorHumidity = fromSensor(room, 'indoor_humidity');
+    if (indoorHumidity == null) indoorHumidity = fromSensor(rad8, 'relative_humidity');
+
+    // Use the RAD8's radon concentration in pCi/L, not counts per minute
+    let radiation = fromSensor(rad8, 'radon_pci_l');
+    if (radiation == null) radiation = fromSensor(room, 'radiation');
+
+    let radonLevel = fromSensor(room, 'radon_level');
+    if (radonLevel == null) radonLevel = fromSensor(rad8, 'radon_pci_l');
+
     return {
-        timestamp: rad8?.timestamp ?? room?.timestamp ?? roof?.timestamp,
-        indoor_temp: room?.indoor_temp ?? rad8?.ambient_temp_f,
-        indoor_humidity: room?.indoor_humidity ?? rad8?.relative_humidity,
-        // Use the RAD8's radon concentration in pCi/L, not counts per minute
-        radiation: rad8?.radon_pci_l ?? room?.radiation,
-        radon_level: room?.radon_level ?? rad8?.radon_pci_l,
-        wind_speed: roof?.wind_speed,
-        rainfall: roof?.rainfall,
-        lux: roof?.lux,
+        timestamp: timestamp,
+        indoor_temp: indoorTemp,
+        indoor_humidity: indoorHumidity,
+        radiation: radiation,
+        radon_level: radonLevel,
+        wind_speed: fromSensor(roof, 'wind_speed'),
+        rainfall: fromSensor(roof, 'rainfall'),
+        lux: fromSensor(roof, 'lux'),
     };
 }
 
 // Set an element's text to a rounded number, only if there's an actual value
 function setReadout(id, val, dec) {
-    const el = document.getElementById(id);
-    if (el && val != null) el.textContent = Number(val).toFixed(dec);
+    if (val != null) setElementText(id, Number(val).toFixed(dec));
 }
 
 // Update every number on the page that shows the current sensor reading
@@ -208,18 +289,19 @@ function updateReadouts(sensor) {
     setReadout('current-rain', sensor.rainfall, 2);
     setReadout('current-solar', sensor.lux, 0);
     setReadout('current-radon', sensor.radon_level, 2);
-    setReadout('weather-temp', sensor.indoor_temp, 0);
-    setReadout('weather-feels', sensor.indoor_temp, 0);
+    // weather-temp is NOT set here -- it's Ann Arbor's real outdoor temperature
+    // from a public weather API (see footer.js), not this station's own sensor
 
     // Header pill keeps its °F suffix
     if (sensor.indoor_temp != null) {
-        const nav = document.getElementById('nav-temp');
-        if (nav) nav.textContent = Number(sensor.indoor_temp).toFixed(0) + '°F';
+        setElementText('nav-temp', Number(sensor.indoor_temp).toFixed(0) + '°F');
     }
 
     if (sensor.radiation != null) {
         setReadout('current-rad', sensor.radiation, 0);
         setRadiationStatus(Number(sensor.radiation));
+    } else {
+        setRadiationUnavailable();
     }
 }
 
@@ -232,8 +314,9 @@ function plotNewReading(sensor) {
     }
 
     // Use the instrument's own clock, browser clock as backup
-    const readingTime = parseDbTime(sensor.timestamp);
-    const ts = (readingTime || new Date()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    let readingTime = parseDbTime(sensor.timestamp);
+    if (!readingTime) readingTime = new Date();
+    const ts = readingTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
     const values = {
         temp: sensor.indoor_temp,
@@ -244,17 +327,21 @@ function plotNewReading(sensor) {
         radon: sensor.radon_level,
     };
 
-    Object.entries(values).forEach(([key, val]) => {
+    for (const key in values) {
         const cfg = CHARTS[key];
-        if (!cfg) return;
+        if (!cfg) continue;
+
+        let val = values[key];
+        if (val === undefined) val = null; // offline sensor = gap in the chart, not a fake flat line
+
         cfg.labels.push(ts);
-        cfg.data.push(val ?? null); // offline sensor = gap in the chart, not a fake flat line
+        cfg.data.push(val);
         if (cfg.labels.length > MAX_POINTS) {
             cfg.labels.shift();
             cfg.data.shift();
         }
         if (cfg.chart) cfg.chart.update();
-    });
+    }
 }
 
 // Main update loop: fetch the latest readings and push them into the page. Runs every minute.
@@ -262,14 +349,19 @@ async function updateLiveChart() {
     let sensor;
     try {
         const stations = await fetchAllStations();
-        const { room, roof, rad8, basement } = stations;
+        const room = stations.room;
+        const roof = stations.roof;
+        const rad8 = stations.rad8;
+        const basement = stations.basement;
 
         // Bail only if nothing answered at all
         if (!room && !roof && !rad8) {
             throw new Error('no data returned from live-data.php');
         }
 
-        seedChartsFromHistory(rad8?.history); // first fetch only
+        let rad8History = null;
+        if (rad8) rad8History = rad8.history;
+        seedChartsFromHistory(rad8History); // first fetch only
         setStationBadge('status-cs-facility', roof);
         setStationBadge('status-rm1962', room);
         setStationBadge('status-basement', basement);
@@ -277,10 +369,20 @@ async function updateLiveChart() {
 
         sensor = mergeSensorReading(stations);
 
-        const readAt = parseDbTime(sensor.timestamp);
-        setLiveBadge(readAt
-            ? 'Live • last reading ' + readAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
-            : 'Live');
+        // rm1962/rad8 are real live sensors. roof (cs-facility) falls back to a
+        // fixed historical snapshot whenever Pantheon can't reach the campus db,
+        // which is always the case here -- so its timestamp alone should never
+        // be shown as a "Live" reading.
+        if (rad8 || room) {
+            const readAt = parseDbTime(sensor.timestamp);
+            if (readAt) {
+                setLiveBadge('Live • last reading ' + readAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
+            } else {
+                setLiveBadge('Live');
+            }
+        } else {
+            setLiveBadge('No live sensors reporting');
+        }
 
         lastGoodSensor = sensor;
         lastGoodAt = Date.now();
@@ -341,15 +443,24 @@ const CSV_DECIMALS = { temp: 1, humidity: 1, wind: 1, rain: 3, solar: 0, radon: 
 // Build a CSV with all six sensor columns and download it
 function exportAllStationsCSV() {
     const keys = Object.keys(CHARTS);
-    const maxLen = Math.max(...keys.map(k => CHARTS[k].labels.length));
+
+    let maxLen = 0;
+    for (const k of keys) {
+        if (CHARTS[k].labels.length > maxLen) maxLen = CHARTS[k].labels.length;
+    }
     if (maxLen === 0) {
         alert('No data collected yet.');
         return;
     }
 
     // Use the chart with the most points as the timestamp source
-    const tsSource = keys.find(k => CHARTS[k].labels.length === maxLen);
-    const timestamps = CHARTS[tsSource].labels;
+    let timestamps = [];
+    for (const k of keys) {
+        if (CHARTS[k].labels.length === maxLen) {
+            timestamps = CHARTS[k].labels;
+            break;
+        }
+    }
 
     const colKeys = ['temp', 'humidity', 'wind', 'rain', 'solar', 'radon'];
     const headers = ['Timestamp', 'Temp (°F)', 'Humidity (%)', 'Wind (mph)', 'Rainfall (in)', 'Solar (lx)', 'Radon (pCi/L)'];
@@ -359,7 +470,11 @@ function exportAllStationsCSV() {
         const row = [timestamps[i] || ''];
         for (const key of colKeys) {
             const val = CHARTS[key].data[i];
-            row.push(val != null ? Number(val).toFixed(CSV_DECIMALS[key]) : '');
+            if (val != null) {
+                row.push(Number(val).toFixed(CSV_DECIMALS[key]));
+            } else {
+                row.push('');
+            }
         }
         rows.push(row);
     }
@@ -368,7 +483,11 @@ function exportAllStationsCSV() {
 }
 
 function downloadCSV(rows, filename) {
-    const csv = rows.map(r => r.join(',')).join('\n');
+    const lines = [];
+    for (const row of rows) {
+        lines.push(row.join(','));
+    }
+    const csv = lines.join('\n');
     const a = document.createElement('a');
     a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
     a.download = filename;

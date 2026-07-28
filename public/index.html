@@ -356,6 +356,7 @@
                     <div>
                         <h3>Live Camera</h3>
                         <div class="camera-thumbnail">
+                            <!-- placeholder screenshot -- swap src for the actual camera image/feed when available -->
                             <img src="images/Screenshot 2026-05-30 at 9.43.34 PM 1.png" alt="Live Camera">
                             <div class="camera-live-tag">Live</div>
                         </div>
@@ -406,22 +407,22 @@
 
                 <div class="measure-modal-grid">
                     <div class="measure-modal-card">
-                        <img src="images/weather.jpg" alt="Weather instruments">
+                        <img src="../icon/temp.png" alt="" class="measure-modal-icon">
                         <h4>Weather</h4>
                         <p>Air temperature, humidity, and barometric pressure from BME680 sensors, plus wind speed, wind direction, and rainfall from the roof station.</p>
                     </div>
                     <div class="measure-modal-card">
-                        <img src="images/radiation.jpg" alt="Radiation detection">
+                        <img src="../icon/radiation.png" alt="" class="measure-modal-icon">
                         <h4>Radiation</h4>
                         <p>Background gamma radiation counted by Geiger tubes, reported as counts per minute. Levels here are typical background and vary naturally with weather and seasons.</p>
                     </div>
                     <div class="measure-modal-card">
-                        <img src="images/ners_indoor.jpg" alt="Radon monitoring">
+                        <img src="../icon/HERO/boxicons_radiation.png" alt="" class="measure-modal-icon">
                         <h4>Radon</h4>
                         <p>Radon concentration in air, measured by RadonEye detectors and a RAD8 monitor in pCi/L. Radon is a naturally occurring radioactive gas that seeps from the ground.</p>
                     </div>
                     <div class="measure-modal-card">
-                        <img src="images/soil.png" alt="Soil and solar sensors">
+                        <img src="../icon/soil.png" alt="" class="measure-modal-icon">
                         <h4>Soil &amp; Sun</h4>
                         <p>Soil moisture and soil temperature probes track ground conditions, while a solar radiation sensor measures incoming sunlight intensity.</p>
                     </div>
@@ -441,67 +442,22 @@
             <div class="rad-modal-body">
                 <p class="rad-intro">Background radiation is everywhere: it comes from the ground, the air, space, and even the materials buildings are made of. The numbers you see here are completely normal and not harmful.</p>
 
-                <h4 class="rad-section-title">Typical readings in Ann Arbor</h4>
-                <div class="season-grid">
-                    <div class="season-card">
-                        <span class="season-name">Winter</span>
-                        <span class="season-months">Dec – Feb</span>
-                        <div class="range">70 – 140 <span>nSv/h</span></div>
-                        <p class="note">Windows shut, radon builds up inside</p>
-                    </div>
-                    <div class="season-card">
-                        <span class="season-name">Spring</span>
-                        <span class="season-months">Mar – May</span>
-                        <div class="range">60 – 120 <span>nSv/h</span></div>
-                        <p class="note">Buildings start opening up again</p>
-                    </div>
-                    <div class="season-card">
-                        <span class="season-name">Summer</span>
-                        <span class="season-months">Jun – Aug</span>
-                        <div class="range">55 – 110 <span>nSv/h</span></div>
-                        <p class="note">Usually the lowest readings of the year</p>
-                    </div>
-                    <div class="season-card">
-                        <span class="season-name">Fall</span>
-                        <span class="season-months">Sep – Nov</span>
-                        <div class="range">65 – 125 <span>nSv/h</span></div>
-                        <p class="note">Starts climbing as buildings close back up</p>
-                    </div>
-                </div>
-
                 <h4 class="rad-section-title">What the status labels mean</h4>
                 <div class="tier-grid">
                     <div class="tier-card tier-card--normal">
                         <div class="tier-dot"></div>
                         <div class="tier-label">Normal</div>
-                        <div class="tier-sub">within seasonal range</div>
-                    </div>
-                    <div class="tier-card tier-card--monitor">
-                        <div class="tier-dot"></div>
-                        <div class="tier-label">Monitor</div>
-                        <div class="tier-sub">a bit above average</div>
+                        <div class="tier-sub">below 2 pCi/L</div>
                     </div>
                     <div class="tier-card tier-card--elevated">
                         <div class="tier-dot"></div>
                         <div class="tier-label">Elevated</div>
-                        <div class="tier-sub">worth keeping an eye on</div>
+                        <div class="tier-sub">approaching the EPA action level</div>
                     </div>
                     <div class="tier-card tier-card--action">
                         <div class="tier-dot"></div>
-                        <div class="tier-label">Action</div>
-                        <div class="tier-sub">investigate the source</div>
-                    </div>
-                </div>
-
-                <h4 class="rad-section-title">Why does it change?</h4>
-                <div class="rad-explainer">
-                    <div class="rad-explainer-row">
-                        <span class="icon">☁</span>
-                        <span>Cosmic rays hit harder in winter when the atmosphere above is thinner and less shielding.</span>
-                    </div>
-                    <div class="rad-explainer-row">
-                        <span class="icon">⌂</span>
-                        <span>Radon gas seeps up from soil and collects indoors when buildings are sealed in cold weather.</span>
+                        <div class="tier-label">High</div>
+                        <div class="tier-sub">above the EPA action level of 4 pCi/L</div>
                     </div>
                 </div>
             </div>

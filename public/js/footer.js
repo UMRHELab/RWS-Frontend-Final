@@ -7,6 +7,27 @@ function cssVar(name) {
         .getPropertyValue(name)
         .trim();
 }
+// Ann Arbor's real outdoor temperature, shown in the small header widget.
+// This is general city weather from a public weather API (Open-Meteo, no
+// account or API key needed) -- it is NOT a reading from any lab instrument.
+async function updateWeatherWidget() {
+    const lat = 42.2681;
+    const lon = -83.7312;
+    try {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit`;
+        const res = await fetch(url);
+        if (!res.ok) return;
+        const json = await res.json();
+        const temp = json?.current_weather?.temperature;
+        if (temp == null) return;
+        const el = document.getElementById('weather-temp');
+        if (el) el.textContent = Math.round(temp);
+    } catch (e) {
+        // Leave the placeholder dash if the weather API can't be reached
+    }
+}
+updateWeatherWidget();
+setInterval(updateWeatherWidget, 15 * 60 * 1000); // weather doesn't change fast, refresh every 15 min
 // Toggle the radiation station submenu in the sidebar
 function toggleRadiationsMenu() {
     const submenu = document.getElementById('radiations-submenu');

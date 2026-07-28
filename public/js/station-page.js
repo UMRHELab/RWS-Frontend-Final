@@ -19,17 +19,35 @@ function initClockAndDates() {
 }
 // Filter report history using the selected time range
 function getFilteredHistory(metric) {
-    const hist = history[metric] || [];
-    const from = document.getElementById('filter-from')?.value;
-    const to = document.getElementById('filter-to')?.value;
+    let hist = history[metric];
+    if (!hist) hist = [];
+
+    let from = '';
+    const fromEl = document.getElementById('filter-from');
+    if (fromEl) from = fromEl.value;
+
+    let to = '';
+    const toEl = document.getElementById('filter-to');
+    if (toEl) to = toEl.value;
+
     if (!from && !to) return hist;
-    return hist.filter(h => {
-        if (!h.t) return true;
+
+    const result = [];
+    for (const h of hist) {
+        if (!h.t) {
+            result.push(h);
+            continue;
+        }
         const hhmm = new Date(h.t).toTimeString().slice(0, 5);
-        if (from && hhmm < from) return false;
-        if (to && hhmm > to) return false;
-        return true;
-    });
+        if (from && hhmm < from) continue;
+        if (to && hhmm > to) continue;
+        result.push(h);
+    }
+    return result;
+}
+// Format one reading using a metric's decimal places and unit
+function formatMetricValue(v, meta) {
+    return Number(v).toFixed(meta.dec) + meta.unit;
 }
 // Update report popup statistics and reading table
 function renderReportTable(metric) {
@@ -37,45 +55,58 @@ function renderReportTable(metric) {
     if (!config || !config.metrics[metric]) return;
     const meta = config.metrics[metric];
     const filtered = getFilteredHistory(metric);
-    const vals = filtered.map(h => h.val);
-    const fmt = v => Number(v).toFixed(meta.dec) + meta.unit;
-    const setVal = (id, v) => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = v;
-    };
-    setVal(
-        'modal-stat-current',
-        vals.length ? fmt(vals[vals.length - 1]) : '--'
-    );
-    setVal(
-        'modal-stat-min',
-        vals.length ? fmt(Math.min(...vals)) : '--'
-    );
-    setVal(
-        'modal-stat-max',
-        vals.length ? fmt(Math.max(...vals)) : '--'
-    );
-    setVal(
-        'modal-stat-avg',
-        vals.length
-            ? fmt(vals.reduce((a, b) => a + b, 0) / vals.length)
-            : '--'
-    );
+
+    const vals = [];
+    for (const h of filtered) {
+        vals.push(h.val);
+    }
+
+    let currentText = '--';
+    let minText = '--';
+    let maxText = '--';
+    let avgText = '--';
+
+    if (vals.length) {
+        let min = vals[0];
+        let max = vals[0];
+        let sum = 0;
+        for (const v of vals) {
+            if (v < min) min = v;
+            if (v > max) max = v;
+            sum += v;
+        }
+        currentText = formatMetricValue(vals[vals.length - 1], meta);
+        minText = formatMetricValue(min, meta);
+        maxText = formatMetricValue(max, meta);
+        avgText = formatMetricValue(sum / vals.length, meta);
+    }
+
+    setText('modal-stat-current', currentText);
+    setText('modal-stat-min', minText);
+    setText('modal-stat-max', maxText);
+    setText('modal-stat-avg', avgText);
+
     const tableRows = document.getElementById('modal-table-rows');
     if (tableRows) {
-        tableRows.innerHTML = filtered.length
-            ? filtered.slice().reverse().map((h, i) =>
-                `<tr class="hover:bg-slate-50">
+        if (filtered.length) {
+            const reversed = filtered.slice().reverse();
+            let rowsHtml = '';
+            for (let i = 0; i < reversed.length; i++) {
+                const h = reversed[i];
+                rowsHtml += `<tr class="hover:bg-slate-50">
                     <td class="px-4 py-2 font-mono text-slate-400">${filtered.length - i}</td>
                     <td class="px-4 py-2">${h.ts}</td>
-                    <td class="px-4 py-2 text-right font-mono font-bold">${fmt(h.val)}</td>
-                </tr>`
-            ).join('')
-            : `<tr>
+                    <td class="px-4 py-2 text-right font-mono font-bold">${formatMetricValue(h.val, meta)}</td>
+                </tr>`;
+            }
+            tableRows.innerHTML = rowsHtml;
+        } else {
+            tableRows.innerHTML = `<tr>
                 <td colspan="3" class="px-4 py-6 text-center text-slate-400 text-xs">
                     No readings in this time range.
                 </td>
             </tr>`;
+        }
     }
 }
 // Open report popup for selected metric
@@ -83,12 +114,12 @@ function openReportPopup(metric) {
     activeMetric = metric;
     const config = STATIONS_CONFIG[currentStation];
     if (!config || !config.metrics[metric]) return;
-    const titleEl = document.getElementById('modal-metric-title');
-    if (titleEl) {
-        titleEl.textContent = config.metrics[metric].label;
-    }
+
+    setText('modal-metric-title', config.metrics[metric].label);
+
     // Set default filter range based on available history
-    const hist = history[metric] || [];
+    let hist = history[metric];
+    if (!hist) hist = [];
     if (hist.length) {
         const fromEl = document.getElementById('filter-from');
         const toEl = document.getElementById('filter-to');
@@ -142,37 +173,48 @@ function downloadAllCombinedCSV() {
     // Build CSV rows from stored history data
     // Uses station configuration to determine column order and formatting
     const keys = Object.keys(config.metrics);
-    const maxLen = Math.max(
-        ...keys.map(k => history[k].length),
-        0
-    );
+
+    let maxLen = 0;
+    for (const k of keys) {
+        if (history[k].length > maxLen) maxLen = history[k].length;
+    }
+
     const rows = [config.csvHeaders];
     for (let i = 0; i < maxLen; i++) {
         let ts = '';
         // All metrics share the same collection interval
         // Use the first available timestamp
         for (const k of keys) {
-            if (history[k][i]?.ts) {
-                ts = history[k][i].ts;
+            const point = history[k][i];
+            if (point && point.ts) {
+                ts = point.ts;
                 break;
             }
         }
         const row = [ts];
         for (const k of keys) {
-            const val = history[k][i]?.val;
-            row.push(
-                val != null
-                    ? Number(val).toFixed(config.metrics[k].dec)
-                    : ''
-            );
+            const point = history[k][i];
+            let val = null;
+            if (point) val = point.val;
+            if (val != null) {
+                row.push(Number(val).toFixed(config.metrics[k].dec));
+            } else {
+                row.push('');
+            }
         }
         rows.push(row);
     }
-    const csv = rows
-        .map(r =>
-            r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')
-        )
-        .join('\n');
+
+    const csvLines = [];
+    for (const row of rows) {
+        const escapedCells = [];
+        for (const v of row) {
+            escapedCells.push('"' + String(v).replace(/"/g, '""') + '"');
+        }
+        csvLines.push(escapedCells.join(','));
+    }
+    const csv = csvLines.join('\n');
+
     const blob = new Blob([csv], {
         type: 'text/csv;charset=utf-8;'
     });
