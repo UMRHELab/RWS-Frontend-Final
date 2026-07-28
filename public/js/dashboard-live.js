@@ -289,7 +289,7 @@ function updateReadouts(sensor) {
     setReadout('current-rain', sensor.rainfall, 2);
     setReadout('current-solar', sensor.lux, 0);
     setReadout('current-radon', sensor.radon_level, 2);
-    // weather-temp is NOT set here -- it's Ann Arbor's real outdoor temperature
+    // weather-temp is NOT set here - it's Ann Arbor's real outdoor temperature
     // from a public weather API (see footer.js), not this station's own sensor
 
     // Header pill keeps its °F suffix
@@ -371,7 +371,7 @@ async function updateLiveChart() {
 
         // rm1962/rad8 are real live sensors. roof (cs-facility) falls back to a
         // fixed historical snapshot whenever Pantheon can't reach the campus db,
-        // which is always the case here -- so its timestamp alone should never
+        // which is always the case here - so its timestamp alone should never
         // be shown as a "Live" reading.
         if (rad8 || room) {
             const readAt = parseDbTime(sensor.timestamp);

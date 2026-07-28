@@ -9,7 +9,7 @@ function cssVar(name) {
 }
 // Ann Arbor's real outdoor temperature, shown in the small header widget.
 // This is general city weather from a public weather API (Open-Meteo, no
-// account or API key needed) -- it is NOT a reading from any lab instrument.
+// account or API key needed) - it is NOT a reading from any lab instrument.
 async function updateWeatherWidget() {
     const lat = 42.2681;
     const lon = -83.7312;

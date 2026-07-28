@@ -5,9 +5,9 @@ header('Access-Control-Allow-Origin: *');
 // where the data comes from:
 // every station (cs-facility, basement, rm1962, rad8) reads from the campus
 // mysql db (webapps3-db). that db is firewalled to the UM campus network, so
-// pantheon can't reach it -- every request from the deployed site just gets
+// pantheon can't reach it - every request from the deployed site just gets
 // null quickly until UM opens that connection, or this runs on a campus
-// machine. no more dropbox fallback -- it kept reverting to private, and the
+// machine. no more dropbox fallback - it kept reverting to private, and the
 // team decided to stop relying on it and focus on the db connection instead.
 
 $DB_HOST = 'webapps3-db.miserver.it.umich.edu';
@@ -112,11 +112,11 @@ try {
         }
 
     } elseif ($station === 'rad8') {
-        // rad8_data on webapps3 -- NOTE: this query is a best guess based on an
+        // rad8_data on webapps3 - NOTE: this query is a best guess based on an
         // old, unfinished draft (it still had placeholder CHANGE_ME credentials,
         // so it was never actually tested against the real table). That draft
         // never had a radon concentration column at all, so radon_pci_l is left
-        // null below -- someone needs to check the real column list in
+        // null below - someone needs to check the real column list in
         // phpMyAdmin and fill that in before this is trustworthy.
         $stmt = $pdo->query("
             SELECT
@@ -145,10 +145,10 @@ try {
     echo json_encode(fallback_for_station($station, 'db unreachable'));
 }
 
-// Used whenever a station's live source is unavailable -- either Pantheon can
+// Used whenever a station's live source is unavailable - either Pantheon can
 // never reach the campus db, or a real db connection attempt just failed.
 // cs-facility has a local file to fall back on; every other station now
-// reads from the same campus db, so there's nothing left to substitute --
+// reads from the same campus db, so there's nothing left to substitute -
 // they just show unavailable instead of a blank page.
 function fallback_for_station($station, $reason)
 {
@@ -228,7 +228,7 @@ function map_rooftop_row($values)
 }
 
 // Reads just the last $count lines of a file without loading the whole thing
-// into memory -- CR1000_Rooftop.dat is 25MB and we only need the last 20 lines
+// into memory - CR1000_Rooftop.dat is 25MB and we only need the last 20 lines
 function read_last_lines($path, $count)
 {
     if (!file_exists($path)) return [];
@@ -236,7 +236,7 @@ function read_last_lines($path, $count)
     $fp = fopen($path, 'r');
     if (!$fp) return [];
 
-    $chunkSize = 8192; // bytes -- plenty of room for the last 20 lines
+    $chunkSize = 8192; // bytes - plenty of room for the last 20 lines
     $fileSize = filesize($path);
     $seekStart = max(0, $fileSize - $chunkSize);
 
@@ -282,7 +282,7 @@ function rwslite_stale_history($pdo)
     return $data;
 }
 
-// True if a db row's timestamp is older than $maxDays -- so a query that
+// True if a db row's timestamp is older than $maxDays - so a query that
 // technically succeeds against a table nobody's updated in months doesn't
 // get shown as if it were a live reading
 function is_stale($timestamp, $maxDays)
