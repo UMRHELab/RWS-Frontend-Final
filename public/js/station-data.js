@@ -35,16 +35,13 @@ function setLastReading(sensor, fromApi) {
     }
     el.textContent = 'Last reading: ' + display;
 }
-// Show a visible warning when the data on screen isn't a live reading --
+// Show a visible warning when the data on screen isn't a live reading -
 // wording depends on which non-live source is currently being shown
 function setStaticSnapshotNote(sensor) {
     const el = document.getElementById('static-snapshot-note');
     if (!el) return;
 
     let message = '';
-    if (sensor && sensor.source === 'roof-static-snapshot') {
-        message = 'Not live — the rooftop logger has no live connection.';
-    }
     if (sensor && sensor.source === 'rwslite-stale') {
         message = 'Data is not updating yet — showing the last 20 readings from before it stopped.';
     }
