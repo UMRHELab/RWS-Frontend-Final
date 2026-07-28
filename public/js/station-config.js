@@ -97,7 +97,8 @@ const STATIONS_CONFIG = {
             }
         },
         updateUI: (sensor) => {
-            setReal('weather-temp', sensor.indoor_temp, 0);
+            // weather-temp is NOT set here -- it's Ann Arbor's real outdoor temperature
+            // from a public weather API (see footer.js), not this station's own sensor
             setReal('nav-temp', sensor.indoor_temp, 0, '°F');
             setReal('current-radon', sensor.radon_level, 2);
             setReal('radon-card-val', sensor.radon_level, 2, ' pCi/L');
@@ -166,7 +167,8 @@ const STATIONS_CONFIG = {
             }
         },
         updateUI: (sensor) => {
-            setReal('weather-temp', sensor.indoor_temp, 0);
+            // weather-temp is NOT set here -- it's Ann Arbor's real outdoor temperature
+            // from a public weather API (see footer.js), not this station's own sensor
             setReal('nav-temp', sensor.indoor_temp, 0, '°F');
             setReal('current-temp', sensor.indoor_temp, 1);
             setReal('current-wind', sensor.wind_speed, 1);
@@ -235,7 +237,8 @@ const STATIONS_CONFIG = {
             }
         },
         updateUI: (sensor) => {
-            setReal('weather-temp', sensor.indoor_temp, 0);
+            // weather-temp is NOT set here -- it's Ann Arbor's real outdoor temperature
+            // from a public weather API (see footer.js), not this station's own sensor
             setReal('nav-temp', sensor.indoor_temp, 0, '°F');
             setReal('current-temp', sensor.indoor_temp, 1);
             setReal('current-humidity', sensor.indoor_humidity, 1);
