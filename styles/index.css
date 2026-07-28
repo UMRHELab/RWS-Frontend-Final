@@ -1322,7 +1322,7 @@
     --rad-border: rgba(239, 68, 68, 0.35);
 }
 
-/* Shown when no radon sensor is currently reporting -- same gray used for
+/* Shown when no radon sensor is currently reporting - same gray used for
    offline station badges, so gray consistently means "no data" site-wide */
 .rad-panel.rad-unavailable {
     --rad-color: #94a3b8;

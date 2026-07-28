@@ -1282,7 +1282,7 @@ global-footer a:hover {
         min-width: 0;
     }
 
-    /* --- Sidebar becomes an off-canvas drawer ---
+    /* - Sidebar becomes an off-canvas drawer -
        z-index needs !important: sidebar.css loads later and would push the
        drawer below the backdrop, making the menu unclickable */
     .sidebar,
@@ -1304,7 +1304,7 @@ global-footer a:hover {
         box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
     }
 
-    /* --- Hamburger button --- */
+    /* - Hamburger button - */
     .mobile-nav-toggle {
         display: flex;
         flex-direction: column;
@@ -1328,7 +1328,7 @@ global-footer a:hover {
         border-radius: 2px;
     }
 
-    /* --- Backdrop behind the open drawer --- */
+    /* - Backdrop behind the open drawer - */
     body.nav-open .mobile-nav-backdrop {
         display: block;
         position: fixed;
@@ -1337,7 +1337,7 @@ global-footer a:hover {
         z-index: 50;
     }
 
-    /* --- Main content takes the full width --- */
+    /* - Main content takes the full width - */
     .main-viewport {
         padding-left: 0;
     }
@@ -1346,7 +1346,7 @@ global-footer a:hover {
         padding: 1rem;
     }
 
-    /* --- Top header: allow wrapping instead of squishing --- */
+    /* - Top header: allow wrapping instead of squishing - */
     .global-header {
         height: auto;
         min-height: 3.5rem;
@@ -1364,7 +1364,7 @@ global-footer a:hover {
         display: none; /* long label, not worth the space on a phone */
     }
 
-    /* --- Hero / greeting banner stacks vertically --- */
+    /* - Hero / greeting banner stacks vertically - */
     .station-hero-banner {
         flex-direction: column;
         align-items: stretch;
@@ -1385,7 +1385,7 @@ global-footer a:hover {
         gap: 0.5rem;
     }
 
-    /* --- All multi-column grids collapse to one column ---
+    /* - All multi-column grids collapse to one column -
        !important because the desktop rules can have higher specificity,
        and losing that fight leaves cards 1/12th wide */
     .workspace-grid,
@@ -1431,8 +1431,8 @@ global-footer a:hover {
         grid-column: auto / span 1 !important;
     }
 
-    /* --- Footer stacks into one column, kept compact so it doesn't
-       swallow the whole screen ---
+    /* - Footer stacks into one column, kept compact so it doesn't
+       swallow the whole screen -
        !important because footer.css loads after this file and would win otherwise */
     .site-footer {
         padding: 1.5rem 0 !important;
@@ -1467,14 +1467,14 @@ global-footer a:hover {
         margin-bottom: 0.2rem !important;
     }
 
-    /* --- General breathing room --- */
+    /* - General breathing room - */
     .glass {
         padding: 1.25rem;
         border-radius: 1rem;
     }
 }
 
-/* "Last reading" stamp on station pages -- makes stale data obvious */
+/* "Last reading" stamp on station pages - makes stale data obvious */
 .last-reading-stamp {
     margin: 0.35rem 0 0;
     font-size: 0.75rem;

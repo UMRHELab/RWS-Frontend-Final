@@ -4,8 +4,8 @@
    so if we add another station later its just a new block in this file
    instead of a whole new css file + a new link tag on every page */
 
-/* -- chart colors, read by station-charts.js / station-config.js via
-   getComputedStyle so the palette lives here instead of hardcoded in JS -- */
+/* - chart colors, read by station-charts.js / station-config.js via
+   getComputedStyle so the palette lives here instead of hardcoded in JS - */
 
 :root {
     --chart-grid-color: rgba(255, 255, 255, 0.05);
@@ -30,7 +30,7 @@
     --station-rm1962-pressure: #f10000;
 }
 
-/* -- hero banner backgrounds, one per station page -- */
+/* - hero banner backgrounds, one per station page - */
 
 .dose-rate-hero {
     background-image: linear-gradient(rgba(10,16,32,0.75),
@@ -57,7 +57,7 @@
     background-position: center;
 }
 
-/* -- dose rate / pro network page -- */
+/* - dose rate / pro network page - */
 
 .val-dose { color: #f87171; }
 .avg-dose-val { color: #fca5a5; font-family: monospace; }
@@ -69,17 +69,17 @@
     text-align: center;
 }
 
-/* -- basement page color tweaks, these are just slightly different shades
-   than the defaults in styles.css so keeping them here as overrides -- */
+/* - basement page color tweaks, these are just slightly different shades
+   than the defaults in styles.css so keeping them here as overrides - */
 
 .avg-radon-val    { color: #fda4af; font-family: monospace; }
 .avg-moisture-val { color: #6ee7b7; font-family: monospace; }
 
-/* -- cs facility page color tweak, same deal -- */
+/* - cs facility page color tweak, same deal - */
 
 .avg-solar-val { color: #fcd34d; font-family: monospace; }
 
-/* -- cs facility camera panel, this one's not shared with anyone else yet -- */
+/* - cs facility camera panel, this one's not shared with anyone else yet - */
 
 .camera-card-header {
     display: flex;
