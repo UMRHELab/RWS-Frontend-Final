@@ -1,6 +1,6 @@
 # RWS Frontend
 
-shows live readings from 3 spots: CS Facility roof, Room 1962, and the basement. no react, no build step.
+shows live readings from 3 spots: CS Facility roof, Room 1962, and the basement
 
 ---
 
