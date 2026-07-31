@@ -1,6 +1,6 @@
-# RWS Frontend
+# RWS-Lite
 
-shows live readings from 3 spots: CS Facility roof, Room 1962, and the basement
+shows live readings from 3 spots: CS Facility roof, Room 1962, and the basement. no react, no build step, no npm install, literally just html/css/js because why make it harder than it needs to be.
 
 ---
 
@@ -11,6 +11,8 @@ basically every station's hardware (RAD8, BME680, that CR1000 datalogger thing, 
 ```
 instruments  →  campus DB / dropbox csv  →  live-data.php  →  dashboard js (polls every 60s)
 ```
+
+if a station doesn't answer you just get `--` and a gap in the chart instead of some made up number, we're not trying to lie to anyone. it'll also keep showing the last good reading for like 15 min before it actually flips the badge to OFFLINE, so one bad poll doesn't nuke the whole page.
 
 ---
 
@@ -50,9 +52,9 @@ RWS.py         the main loop that actually runs on the pi
 **homepage js**:
 
 - `dashboard-news.js` — pulls the highlights/news sections from two google sheets published as csv (no cms needed, just edit the sheet)
-- `dashboard-3d.js` — the 3d building thing, purely for looks, doesn't affect anything else
+- `dashboard-3d.js` — the spinny 3d building thing, purely for looks, doesn't affect anything else
 - `dashboard-charts.js` — the 6 little sparkline charts on the homepage
-- `dashboard-live.js` — fetches all 4 station feeds at once, merges them with fallbacks (room sensor first, then RAD8), updates everything every minute
+- `dashboard-live.js` — the beefiest file, fetches all 4 station feeds at once, merges them with fallbacks (room sensor first, then RAD8), updates everything every minute
 
 **`footer.js`** — shared across every page, loads the footer html, builds the mobile nav, keeps the sidebar station dots synced
 
@@ -66,6 +68,6 @@ RWS.py         the main loop that actually runs on the pi
 
 ## running this locally
 
-just open `public/index.html` in a browser, no server needed. the js hits the real live api directly so you'll see actual data as long as you're online.
+just open `public/index.html` in a browser, no server needed. the js hits the real live api directly so you'll see actual data as long as you're online (kinda nice not having to mock anything tbh).
 
-`RWS.py` needs the actual pi hardware to run, no simulation mode anymore, no more fake numbers getting written to the db.
+`RWS.py` needs the actual pi hardware to run, no simulation mode anymore, no more fake numbers getting written to the db. if you're not on a pi with the sensors wired up, `import board` etc will just fail and that's expected.

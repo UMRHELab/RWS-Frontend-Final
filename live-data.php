@@ -111,12 +111,10 @@ try {
         }
 
     } elseif ($station === 'rad8') {
-        // rad8_data on webapps3 - NOTE: this query is a best guess based on an
-        // old, unfinished draft (it still had placeholder CHANGE_ME credentials,
-        // so it was never actually tested against the real table). That draft
-        // never had a radon concentration column at all, so radon_pci_l is left
-        // null below - someone needs to check the real column list in
-        // phpMyAdmin and fill that in before this is trustworthy.
+        // rad8_data on webapps3, sensor_id 1 is the actual RAD8 unit - confirmed
+        // via phpMyAdmin: timestamp, ambient_temp, sample_temp_cal,
+        // relative_humidity, baro_pressure_mbar, radon_pci_l, and sensor_id
+        // are all real columns. counts_per_min is still unverified.
         $stmt = $pdo->query("
             SELECT
                 timestamp,
@@ -124,15 +122,14 @@ try {
                 (ambient_temp * 9/5 + 32)    AS ambient_temp_f,
                 (sample_temp_cal * 9/5 + 32) AS sample_temp_f,
                 relative_humidity,
-                baro_pressure_mbar
+                baro_pressure_mbar,
+                radon_pci_l
             FROM rad8_data
+            WHERE sensor_id = 1
             ORDER BY timestamp DESC
             LIMIT 1
         ");
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($row) {
-            $row['radon_pci_l'] = null; // TODO: confirm the real column name
-        }
     }
 
     if ($row === false) {
