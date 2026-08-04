@@ -12,7 +12,7 @@ basically every station's hardware (RAD8, BME680, that CR1000 datalogger thing, 
 instruments  →  campus DB / dropbox csv  →  live-data.php  →  dashboard js (polls every 60s)
 ```
 
-if a station doesn't answer you just get `--` and a gap in the chart instead of some made up number, we're not trying to lie to anyone. it'll also keep showing the last good reading for like 15 min before it actually flips the badge to OFFLINE, so one bad poll doesn't nuke the whole page.
+if a station doesn't answer you just get `--` and a gap in the chart instead of some made up number, we're not trying to lie to anyone. it'll also keep showing the last good reading for like 15 min before it actually flips the badge to OFFLINE.
 
 ---
 
