@@ -1,0 +1,210 @@
+# need to pip install flask and pip install flask-cors to run this
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import pymysql
+
+app = Flask(__name__)
+CORS(app)
+
+def get_connection():
+    """Get database connection to php MySQL database."""
+    return pymysql.connect(
+        host="webapps3-db.miserver.it.umich.edu",
+        user="rws_data_test",
+        password="7N22Mn5V_y",
+        database="rws_data_test",
+        charset="utf8mb4",
+        init_command="SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
+        cursorclass=pymysql.cursors.DictCursor
+    )
+
+@app.route('/api/buildings', methods=['GET'])
+def get_buildings():
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT DISTINCT building_name FROM room_info WHERE building_name IS NOT NULL ORDER BY building_name")
+        rows = cursor.fetchall()
+        conn.close()
+
+        buildings = [row['building_name'] for row in rows]
+
+        return jsonify({
+            'buildings': buildings
+        }), 200
+
+    except pymysql.MySQLError as e:
+        return jsonify({'error': f'Database error: {str(e)}'}), 500
+
+
+@app.route('/api/rooms', methods=['GET'])
+def get_rooms():
+    building_name = request.args.get('building_name')
+    
+    if not building_name:
+        return jsonify({'error': 'The building_name parameter is required.'}), 400
+        
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT room_number FROM room_info WHERE building_name = %s ORDER BY room_number", 
+            (building_name,)
+        )
+        
+        rows = cursor.fetchall()
+        conn.close()
+        room_numbers = [row['room_number'] for row in rows]
+
+        if not room_numbers:
+            return jsonify({
+                'message': f'No rooms found for building: {building_name}', 
+                'rooms': []
+            }), 404
+
+        return jsonify({
+            'rooms': room_numbers
+        }), 200
+
+    except pymysql.MySQLError as e:
+        return jsonify({'error': f'Database error: {str(e)}'}), 500
+
+
+@app.route('/api/sensors', methods=['GET'])
+def get_sensors():
+    building_name = request.args.get('building_name')
+    room_number = request.args.get('room_number')
+    
+    if not building_name or not room_number:
+        return jsonify({'error': 'Both building_name and room_number parameters are required.'}), 400
+        
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        
+        query = """
+            SELECT s.sensor_id, s.sensor_type
+            FROM sensor_info s
+            JOIN room_info r ON s.room_id = r.room_id
+            WHERE r.building_name = %s AND r.room_number = %s
+        """
+        cursor.execute(query, (building_name, room_number))
+        
+        sensors = cursor.fetchall()
+        conn.close()
+
+        sensor_type_id = []
+        for sensor in sensors:
+            sensor_type_id.append(f"{sensor['sensor_type']} {sensor['sensor_id']}")
+
+        # 4. Return the results
+        if not sensors:
+            return jsonify({
+                'message': f'No sensors found for {building_name}, Room {room_number}', 
+                'sensors': []
+            }), 404
+
+        return jsonify({
+            'sensors': sensor_type_id
+        }), 200
+
+    except pymysql.MySQLError as e:
+        return jsonify({'error': f'Database error: {str(e)}'}), 500
+
+
+@app.route('/api/sensor-columns', methods=['GET'])
+def get_sensor_columns():
+    sensor_input = request.args.get('sensor_type')
+    
+    if not sensor_input:
+        return jsonify({'error': 'The sensor_type parameter is required.'}), 400
+        
+    sensor_type = sensor_input.split()[0]
+
+    table_name = f"{sensor_type}_data"
+    
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute(f"SHOW COLUMNS FROM `{table_name}`")
+        rows = cursor.fetchall()
+        conn.close()
+        
+        excluded_columns = {'record_id', 'sensor_id', 'timestamp'}
+        
+        columns = [
+            row['Field'] for row in rows 
+            if row['Field'].lower() not in excluded_columns
+        ]
+
+        return jsonify({
+            'columns': columns
+        }), 200
+
+    except pymysql.MySQLError as e:
+        # Error code 1146 means "Table doesn't exist" in MySQL
+        if e.args[0] == 1146:
+            return jsonify({'error': f'Table {table_name} does not exist.'}), 404
+            
+        return jsonify({'error': f'Database error: {str(e)}'}), 500
+
+@app.route('/api/sensor-data', methods=['GET'])
+def get_sensor_data():
+    building_name = request.args.get('building_name')
+    room_number = request.args.get('room_number')
+    sensor_input = request.args.get('sensor')
+    data_column = request.args.get('data_column')
+
+    if not all([building_name, room_number, sensor_input, data_column]):
+        return jsonify({'error': 'building_name, room_number, sensor, and data_column are required.'}), 400
+
+    parts = sensor_input.split()
+    sensor_type = parts[0].lower(), sensor_id = parts[1]
+    
+    try:
+        sensor_id = int(parts[1])
+    except ValueError:
+        return jsonify({'error': 'Sensor ID must be a number.'}), 400
+
+    table_name = f"{sensor_type}_data"
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        
+        query = f"""
+            SELECT timestamp, `{data_column}`
+            FROM (
+                SELECT timestamp, `{data_column}`
+                FROM `{table_name}`
+                WHERE sensor_id = %s
+                ORDER BY timestamp DESC
+                LIMIT 1000
+            ) AS recent_data
+            ORDER BY timestamp ASC
+        """
+        
+        cursor.execute(query, (sensor_id,))
+        rows = cursor.fetchall()
+        conn.close()
+
+        timestamps = [row['timestamp'] for row in rows]
+        values = [row[data_column] for row in rows]
+
+        return jsonify({
+            'building': building_name,
+            'room': room_number,
+            'sensor': sensor_input,
+            'column': data_column,
+            'data': {
+                'timestamps': timestamps,
+                'values': values
+            }
+        }), 200
+
+    except pymysql.MySQLError as e:
+        return jsonify({'error': f'Database error: {str(e)}'}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True)
