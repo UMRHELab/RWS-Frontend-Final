@@ -1,10 +1,10 @@
-# RWS-Lite
+# RWS
 
-shows live readings from 3 spots: CS Facility roof, Room 1962, and the basement. no react, no build step, no npm install, literally just html/css/js because why make it harder than it needs to be.
+shows live readings from 3 spots: CS Facility roof, Room 1962, and the basement. no react, no build step
 
 ---
 
-## how it works (kinda)
+## how it works 
 
 basically every station's hardware (RAD8, BME680, that CR1000 datalogger thing, etc) logs a reading every ~10 min. `live-data.php` grabs the latest one and hands it back as JSON — it tries the campus mysql db first, and if that's not reachable it falls back to a dropbox csv that gets synced from the lab computer (RAD8 and room 1962 data mainly). the dashboard js just polls that endpoint once a minute and shovels the numbers into the cards/charts/badges.
 
