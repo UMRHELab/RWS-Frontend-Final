@@ -132,10 +132,12 @@ def get_sensor_columns():
         conn.close()
         
         excluded_columns = {'record_id', 'sensor_id', 'timestamp'}
-        
+        numeric_type_prefixes = ('float', 'double', 'decimal', 'int', 'bigint', 'smallint', 'mediumint', 'numeric')
+
         columns = [
-            row['Field'] for row in rows 
+            row['Field'] for row in rows
             if row['Field'].lower() not in excluded_columns
+            and row['Type'].lower().startswith(numeric_type_prefixes)
         ]
 
         return jsonify({
@@ -160,8 +162,8 @@ def get_sensor_data():
         return jsonify({'error': 'building_name, room_number, sensor, and data_column are required.'}), 400
 
     parts = sensor_input.split()
-    sensor_type = parts[0].lower(), sensor_id = parts[1]
-    
+    sensor_type = parts[0].lower()
+
     try:
         sensor_id = int(parts[1])
     except ValueError:
@@ -169,27 +171,34 @@ def get_sensor_data():
 
     table_name = f"{sensor_type}_data"
 
+    # most tables call their time column "timestamp" - a few don't, so this
+    # is where we point those at the right column name instead
+    time_column_overrides = {
+        'gamon_d_data': 'startDateTime',
+    }
+    time_column = time_column_overrides.get(table_name, 'timestamp')
+
     try:
         conn = get_connection()
         cursor = conn.cursor()
-        
+
         query = f"""
-            SELECT timestamp, `{data_column}`
+            SELECT `{time_column}`, `{data_column}`
             FROM (
-                SELECT timestamp, `{data_column}`
+                SELECT `{time_column}`, `{data_column}`
                 FROM `{table_name}`
                 WHERE sensor_id = %s
-                ORDER BY timestamp DESC
+                ORDER BY `{time_column}` DESC
                 LIMIT 1000
             ) AS recent_data
-            ORDER BY timestamp ASC
+            ORDER BY `{time_column}` ASC
         """
-        
+
         cursor.execute(query, (sensor_id,))
         rows = cursor.fetchall()
         conn.close()
 
-        timestamps = [row['timestamp'] for row in rows]
+        timestamps = [row[time_column] for row in rows]
         values = [row[data_column] for row in rows]
 
         return jsonify({
