@@ -131,7 +131,12 @@ def get_sensor_columns():
         rows = cursor.fetchall()
         conn.close()
         
-        excluded_columns = {'record_id', 'sensor_id', 'timestamp'}
+        excluded_columns = {
+            'record_id', 'sensor_id', 'timestamp', 'latitude', 'longitude', 
+            'altitude', 'warningThreshold', 'alarmThreshold', 'raining',
+            'coefficient_A', 'coefficient_B', 'coefficient_C', 'rain',
+            'counts'
+                            }
         numeric_type_prefixes = ('float', 'double', 'decimal', 'int', 'bigint', 'smallint', 'mediumint', 'numeric')
 
         columns = [
