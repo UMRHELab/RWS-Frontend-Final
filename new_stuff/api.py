@@ -2,6 +2,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pymysql
+import json
 
 app = Flask(__name__)
 CORS(app)
@@ -110,7 +111,7 @@ def get_sensors():
 
     except pymysql.MySQLError as e:
         return jsonify({'error': f'Database error: {str(e)}'}), 500
-
+    
 
 @app.route('/api/sensor-columns', methods=['GET'])
 def get_sensor_columns():
@@ -135,7 +136,6 @@ def get_sensor_columns():
             'record_id', 'sensor_id', 'timestamp', 'latitude', 'longitude', 
             'altitude', 'warningThreshold', 'alarmThreshold', 'raining',
             'coefficient_A', 'coefficient_B', 'coefficient_C', 'rain',
-            'counts'
                             }
         numeric_type_prefixes = ('float', 'double', 'decimal', 'int', 'bigint', 'smallint', 'mediumint', 'numeric')
 
@@ -158,6 +158,8 @@ def get_sensor_columns():
 
 @app.route('/api/sensor-data', methods=['GET'])
 def get_sensor_data():
+
+    time_range_input = request.args.get('time_range')
     building_name = request.args.get('building_name')
     room_number = request.args.get('room_number')
     sensor_input = request.args.get('sensor')
@@ -166,6 +168,11 @@ def get_sensor_data():
     if not all([building_name, room_number, sensor_input, data_column]):
         return jsonify({'error': 'building_name, room_number, sensor, and data_column are required.'}), 400
 
+    try:
+        time_range = int(time_range_input)
+    except ValueError:
+        return jsonify({'error': 'time_range must be a valid number.'}), 400
+    
     parts = sensor_input.split()
     sensor_type = parts[0].lower()
 
@@ -182,40 +189,74 @@ def get_sensor_data():
         'gamon_d_data': 'startDateTime',
     }
     time_column = time_column_overrides.get(table_name, 'timestamp')
-
+    if sensor_type == 'sword':
+        entries = time_range * 24
+    else:
+        entries = time_range * 24 * 6
     try:
         conn = get_connection()
         cursor = conn.cursor()
-
-        query = f"""
-            SELECT `{time_column}`, `{data_column}`
-            FROM (
+        if data_column == 'counts':
+            query = f"""
+                SELECT `{time_column}`, `coefficient_A`, `coefficient_B`, `coefficient_C`, `{data_column}`
+                FROM (
+                    SELECT `{time_column}`, `coefficient_A`, `coefficient_B`, `coefficient_C`, `{data_column}`
+                    FROM `{table_name}`
+                    WHERE sensor_id = %s
+                    ORDER BY `{time_column}` DESC
+                    LIMIT {entries}
+                ) AS recent_data
+                ORDER BY `{time_column}` ASC
+            """
+        else:
+            query = f"""
                 SELECT `{time_column}`, `{data_column}`
-                FROM `{table_name}`
-                WHERE sensor_id = %s
-                ORDER BY `{time_column}` DESC
-                LIMIT 1000
-            ) AS recent_data
-            ORDER BY `{time_column}` ASC
-        """
-
+                FROM (
+                    SELECT `{time_column}`, `{data_column}`
+                    FROM `{table_name}`
+                    WHERE sensor_id = %s
+                    ORDER BY `{time_column}` DESC
+                    LIMIT {entries}
+                ) AS recent_data
+                ORDER BY `{time_column}` ASC
+            """
         cursor.execute(query, (sensor_id,))
         rows = cursor.fetchall()
         conn.close()
-
-        timestamps = [row[time_column] for row in rows]
-        values = [row[data_column] for row in rows]
-
-        return jsonify({
-            'building': building_name,
-            'room': room_number,
-            'sensor': sensor_input,
-            'column': data_column,
-            'data': {
-                'timestamps': timestamps,
-                'values': values
-            }
-        }), 200
+        if data_column == 'counts':
+            timestamps = []
+            counts = []
+            energy = []
+            for row in rows:
+                json_string = row['counts']
+                counts_list = json.loads(json_string)
+                counts += counts_list
+                timestamps += [str(row[time_column])] * len(counts_list)
+                energy += [row['coefficient_A'] * count * count + row['coefficient_B'] * count + row['coefficient_C'] for count in counts_list]
+            return jsonify({
+                'building': building_name,
+                'room': room_number,
+                'sensor': sensor_input,
+                'column': data_column,
+                'data': {
+                    'timestamps': timestamps,
+                    'counts_y_axis': counts,
+                    'values_x_axis': energy
+                }
+            }), 200
+        else:
+            values = [row[data_column] for row in rows]
+            timestamps = [str(row[time_column]) for row in rows]
+            return jsonify({
+                'building': building_name,
+                'room': room_number,
+                'sensor': sensor_input,
+                'column': data_column,
+                'data': {
+                    'timestamps': timestamps,
+                    'values': values
+                }
+            }), 200
 
     except pymysql.MySQLError as e:
         return jsonify({'error': f'Database error: {str(e)}'}), 500
