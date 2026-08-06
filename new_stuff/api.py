@@ -144,7 +144,8 @@ def get_sensor_columns():
             if row['Field'].lower() not in excluded_columns
             and row['Type'].lower().startswith(numeric_type_prefixes)
         ]
-
+        if sensor_type == 'rad8':
+            columns.append('counts')
         return jsonify({
             'columns': columns
         }), 200
@@ -197,17 +198,51 @@ def get_sensor_data():
         conn = get_connection()
         cursor = conn.cursor()
         if data_column == 'counts':
-            query = f"""
-                SELECT `{time_column}`, `coefficient_A`, `coefficient_B`, `coefficient_C`, `{data_column}`
-                FROM (
+            if sensor_type == 'rad8':
+                channel_cols = []
+                channel_keys = []
+                
+                for i in range(1, 801):
+                    if i <= 320:   suffix = "_f_low"
+                    elif i <= 392: suffix = "_g_med"
+                    elif i <= 448: suffix = "_h_210po"
+                    elif i <= 512: suffix = "_a_218po"
+                    elif i <= 576: suffix = "_b_216po"
+                    elif i <= 656: suffix = "_c_214po"
+                    elif i <= 744: suffix = "_d_212po"
+                    else:          suffix = "_e_high"
+                    
+                    col_name = f"ch{i}{suffix}"
+                    channel_keys.append(col_name)
+                    channel_cols.append(f"`{col_name}`")
+                    
+                # Join them together with commas: `ch1_f_low`, `ch2_f_low`, ... `ch800_e_high`
+                select_string = ", ".join(channel_cols)
+                
+                # 2. Build the query
+                query = f"""
+                    SELECT `{time_column}`, {select_string}
+                    FROM (
+                        SELECT `{time_column}`, {select_string}
+                        FROM `{table_name}`
+                        WHERE sensor_id = %s
+                        ORDER BY `{time_column}` DESC
+                        LIMIT {entries}
+                    ) AS recent_data
+                    ORDER BY `{time_column}` ASC
+                """
+            else:
+                query = f"""
                     SELECT `{time_column}`, `coefficient_A`, `coefficient_B`, `coefficient_C`, `{data_column}`
-                    FROM `{table_name}`
-                    WHERE sensor_id = %s
-                    ORDER BY `{time_column}` DESC
-                    LIMIT {entries}
-                ) AS recent_data
-                ORDER BY `{time_column}` ASC
-            """
+                    FROM (
+                        SELECT `{time_column}`, `coefficient_A`, `coefficient_B`, `coefficient_C`, `{data_column}`
+                        FROM `{table_name}`
+                        WHERE sensor_id = %s
+                        ORDER BY `{time_column}` DESC
+                        LIMIT {entries}
+                    ) AS recent_data
+                    ORDER BY `{time_column}` ASC
+                """
         else:
             query = f"""
                 SELECT `{time_column}`, `{data_column}`
@@ -227,12 +262,23 @@ def get_sensor_data():
             timestamps = []
             counts = []
             energy = []
-            for row in rows:
-                json_string = row['counts']
-                counts_list = json.loads(json_string)
-                counts += counts_list
-                timestamps += [str(row[time_column])] * len(counts_list)
-                energy += [row['coefficient_A'] * count * count + row['coefficient_B'] * count + row['coefficient_C'] for count in counts_list]
+            if sensor_type == 'rad8':
+                for row in rows:
+                    for key in channel_keys:
+                        counts.append(row[key])
+                    for i in range(1, 801):
+                        energy.append(12.5*i)
+                    timestamps += [str(row[time_column])] * 800
+            else:
+                for row in rows:
+                    json_string = row['counts']
+                    if not json_string:
+                        continue
+                    counts_list = json.loads(json_string)
+                    counts += counts_list
+                    timestamps += [str(row[time_column])] * len(counts_list)
+                    for i in range(1, len(counts_list)+1):
+                        energy.append(row['coefficient_A']* i * i + row['coefficient_B'] * i + row['coefficient_C'])
             return jsonify({
                 'building': building_name,
                 'room': room_number,
