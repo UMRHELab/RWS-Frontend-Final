@@ -2,6 +2,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pymysql
+import numpy as np
 import json
 
 app = Flask(__name__)
@@ -262,23 +263,57 @@ def get_sensor_data():
             timestamps = []
             counts = []
             energy = []
+            start_time = None
+            end_time = None
             if sensor_type == 'rad8':
+                counts = [0] * 800
+                energy = [12.5 * i for i in range(1, 801)]
                 for row in rows:
-                    for key in channel_keys:
-                        counts.append(row[key])
-                    for i in range(1, 801):
-                        energy.append(12.5*i)
-                    timestamps += [str(row[time_column])] * 800
+                    if start_time is None:
+                        start_time = str(row[time_column])
+                    end_time = str(row[time_column])
+                    
+                    for i, key in enumerate(channel_keys):
+                        val = row[key] if row[key] is not None else 0
+                        counts[i] += val
+                if start_time and end_time:
+                    timestamps = [f"{start_time} to {end_time}"] * 800
             else:
+                total_channels = 1024
+                e_min = 0
+                e_max = 3000
+                bin_width = (e_max - e_min) / (total_channels - 1)
+                std_energy_axis = np.linspace(e_min, e_max, total_channels)
+                std_counts = np.zeros(total_channels, dtype=np.int64)
+                
                 for row in rows:
                     json_string = row['counts']
                     if not json_string:
                         continue
-                    counts_list = json.loads(json_string)
-                    counts += counts_list
-                    timestamps += [str(row[time_column])] * len(counts_list)
-                    for i in range(1, len(counts_list)+1):
-                        energy.append(row['coefficient_A']* i * i + row['coefficient_B'] * i + row['coefficient_C'])
+                        
+                    if start_time is None:
+                        start_time = str(row[time_column])
+                    end_time = str(row[time_column])
+                
+                    counts_array = np.array(json.loads(json_string))
+                    channels = np.arange(len(counts_array))
+                    
+                    a = row['coefficient_A']
+                    b = row['coefficient_B']
+                    c = row['coefficient_C']
+                    
+                    energies = a * (channels**2) + b * channels + c
+                    indices = np.round((energies - e_min) / bin_width).astype(int)
+                    
+                    for idx_val, count in zip(indices, counts_array):
+                        if 0 <= idx_val < total_channels:
+                            std_counts[idx_val] += count
+                            
+                if start_time and end_time:
+                    timestamps = [f"{start_time} to {end_time}"] * total_channels
+                
+                energy = std_energy_axis.tolist()
+                counts = std_counts.tolist()
             return jsonify({
                 'building': building_name,
                 'room': room_number,
