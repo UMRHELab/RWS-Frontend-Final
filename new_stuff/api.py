@@ -342,5 +342,56 @@ def get_sensor_data():
     except pymysql.MySQLError as e:
         return jsonify({'error': f'Database error: {str(e)}'}), 500
 
+@app.route('/api/presentation-data', methods=['GET'])
+def get_presentation_data():
+    sensors = {
+        'rad8' : ['ambient_temp', 'relative_humidity', 'radon_pci_l'],
+        'cr1000' : ["WindVel", "RainTotal"]
+    }
+    presentation_data = {}
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        
+        for sensor_type, columns in sensors.items():
+            table_name = f"{sensor_type}_data"
+            time_column = 'timestamp'
+            
+            cols_str = ", ".join([f"`{col}`" for col in columns])
+            
+            query = f"""
+                SELECT `sensor_id`, `{time_column}`, {cols_str}
+                FROM `{table_name}`
+                ORDER BY `{time_column}` DESC
+                LIMIT 1
+            """
+            
+            try:
+                cursor.execute(query)
+                row = cursor.fetchone() 
+                
+                if row:
+                    sensor_data = {
+                        'sensor_id': row['sensor_id'],
+                        'timestamp': str(row[time_column])
+                    }
+                    for col in columns:
+                        sensor_data[col] = row[col]
+                        
+                    presentation_data[sensor_type] = sensor_data
+                else:
+                    presentation_data[sensor_type] = None 
+                    
+            except pymysql.MySQLError as e:
+                presentation_data[sensor_type] = {'error': str(e)}
+        conn.close()
+        return jsonify({
+            'data': presentation_data
+        }), 200
+
+    except pymysql.MySQLError as e:
+        return jsonify({'error': f'Database connection error: {str(e)}'}), 500
+
 if __name__ == '__main__':
     app.run(debug=True)
