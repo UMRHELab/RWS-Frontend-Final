@@ -394,4 +394,4 @@ def get_presentation_data():
         return jsonify({'error': f'Database connection error: {str(e)}'}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)  # 5000 collides with macOS AirPlay Receiver
+    app.run(debug=True, port=5001)
