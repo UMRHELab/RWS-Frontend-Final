@@ -9,13 +9,6 @@
     margin-top: 1.25rem;
 }
 
-/* Empty/loading state for the Recent Highlights box (filled by js/updates-feed.js) */
-.highlights-empty {
-    text-align: center;
-    color: #94a3b8;
-    padding: 1.5rem 0;
-    font-size: 0.875rem;
-}
 
 /* Scale up the whole UI on large monitors */
 @media (min-width: 1920px) {
@@ -212,12 +205,6 @@ body {
 .subnav-status.live-marker {
     color: #10b981;
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.sidebar-footer {
-    padding: 1rem;
-    border-top: 1px solid rgba(30, 41, 59, 0.6);
-    background-color: #060a14;
 }
 
 .sandbox-btn {
@@ -537,28 +524,6 @@ body {
     margin: 0.125rem 0 0 0;
 }
 
-.export-btn {
-    padding: 0.625rem 1.25rem;
-    background-color: #059669;
-    color: #022c22;
-    font-weight: 700;
-    font-size: 0.75rem;
-    border-radius: 0.75rem;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-shrink: 0;
-    white-space: nowrap;
-    box-shadow: 0 10px 15px -3px rgba(5, 150, 105, 0.1);
-}
-
-.export-btn:hover {
-    background-color: #10b981;
-}
-
 /* Chart Canvas Presentation Wrappers */
 .metric-chart-card h3 {
     font-size: 1.25rem;
@@ -789,42 +754,27 @@ body {
 }
 
 .pdf-toolbar {
-    background-color: #001a36;
-    padding: 0.75rem 1.5rem;
-    border-bottom: 1px solid rgba(255, 203, 5, 0.2);
+    padding: 1.5rem 1.5rem 1rem;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
+    border-bottom: 2px solid #334155;
 }
 
-.pdf-filename {
+.pdf-toolbar h2 {
+    font-size: 1.25rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.025em;
+    color: #f1f5f9;
+    margin: 0;
+}
+
+.pdf-toolbar p {
     font-size: 0.75rem;
-    font-weight: 700;
-    color: #7c8ba1;
-    font-family: monospace;
-    letter-spacing: 0.05em;
-}
-
-.pdf-toolbar-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.print-btn {
-    padding: 0.25rem 0.75rem;
-    background-color: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #cbd5e1;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.print-btn:hover {
-    background-color: #334155;
+    font-weight: 500;
+    color: #94a3b8;
+    margin: 0.125rem 0 0 0;
 }
 
 .close-modal-btn {
@@ -854,50 +804,6 @@ body {
     box-sizing: border-box;
 }
 
-.pdf-header-strip {
-    border-bottom: 2px solid #334155;
-    padding-bottom: 1rem;
-    margin-bottom: 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-}
-
-.pdf-header-strip h2 {
-    font-size: 1.25rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: -0.025em;
-    color: #f1f5f9;
-    margin: 0;
-}
-
-.pdf-header-strip p {
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: #94a3b8;
-    margin: 0.125rem 0 0 0;
-}
-
-.pdf-header-meta-right {
-    text-align: right;
-}
-
-.pdf-page-counter {
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #7c8ba1;
-    font-family: monospace;
-}
-
-.pdf-generated-date {
-    font-size: 11px;
-    font-weight: 600;
-    color: #94a3b8;
-    margin-top: 0.125rem;
-}
 
 .pdf-abstract-text {
     font-size: 0.75rem;
@@ -1147,78 +1053,6 @@ body {
 .info-value          { color: #e2e8f0; }
 .info-value-gold     { color: #ffcb05; font-family: monospace; }
 .info-value-online   { color: #34d399; font-weight: 700; }
-
-.filter-bar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-    padding: 0.75rem 1rem;
-    background-color: #001a36;
-    border: 1px solid rgba(255, 203, 5, 0.15);
-    border-radius: 0.75rem;
-}
-
-.filter-bar-label {
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #7c8ba1;
-}
-
-.filter-group {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-}
-
-.filter-input-label {
-    font-size: 0.75rem;
-    color: #94a3b8;
-    font-weight: 600;
-}
-
-.filter-input {
-    font-size: 0.75rem;
-    border: 1px solid #334155;
-    border-radius: 0.5rem;
-    padding: 0.25rem 0.5rem;
-    color: #cbd5e1;
-    background-color: #1e293b;
-    outline: none;
-}
-
-.filter-input:focus { border-color: #7c8ba1; }
-
-.filter-apply-btn {
-    padding: 0.25rem 0.75rem;
-    background-color: #ffcb05;
-    color: #0c1428;
-    font-size: 0.75rem;
-    font-weight: 700;
-    border: none;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    transition: background-color 0.15s;
-}
-
-.filter-apply-btn:hover { background-color: #e5b704; }
-
-.filter-clear-btn {
-    padding: 0.25rem 0.75rem;
-    background-color: transparent;
-    color: #94a3b8;
-    font-size: 0.75rem;
-    font-weight: 600;
-    border: 1px solid #334155;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    transition: background-color 0.15s;
-}
-
-.filter-clear-btn:hover { background-color: #1e293b; }
 
 .hero-sun-svg { width: 52px; height: 52px; fill: none; }
 .sun-ray  { stroke: #ffcb05; stroke-width: 2.5; stroke-linecap: round; }
@@ -1480,18 +1314,6 @@ global-footer a:hover {
     font-size: 0.75rem;
     font-family: monospace;
     color: #fbbf24;
-}
-
-/* Shown only when a station is displaying a fixed historical snapshot instead of live data */
-.static-snapshot-note {
-    margin: 0.5rem 0 0;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #fbbf24;
-    background: rgba(251, 191, 36, 0.1);
-    border: 1px solid rgba(251, 191, 36, 0.35);
-    border-radius: 0.375rem;
 }
 
 /* °F unit next to the big temperature readout in the weather card */

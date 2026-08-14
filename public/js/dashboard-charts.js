@@ -1,6 +1,4 @@
-// Homepage: sparkline chart configuration
-// Creates the six dashboard charts. Live sensor data is added separately by dashboard-live.js.
-// Each chart stores its Chart.js instance, data history, styling, and reference baseline.
+// homepage sparkline charts - live data gets added in dashboard-live.js
 const CHARTS = {
     temp:     { chart: null, labels: [], data: [], color: '--dashboard-chart-temp',     baseline: 55.5, blLabel: '55.5°F' },
     humidity: { chart: null, labels: [], data: [], color: '--dashboard-chart-humidity', baseline: 50,   blLabel: '50%'    },
@@ -9,9 +7,9 @@ const CHARTS = {
     solar:    { chart: null, labels: [], data: [], color: '--dashboard-chart-solar',    baseline: 450,  blLabel: '450lx'  },
     radon:    { chart: null, labels: [], data: [], color: '--dashboard-chart-radon',    baseline: 1.2,  blLabel: '1.2pCi' },
 };
-const MAX_POINTS = 30; // Maximum number of recent readings displayed per chart
+const MAX_POINTS = 30; // how many recent readings each chart keeps
 
-// Dashed reference line at the metric's baseline value, only if the annotation plugin loaded
+// dashed baseline line, only shows up if the annotation plugin loaded
 function buildBaselineAnnotation(cfg) {
     const annotationPlugin = window['chartjs-plugin-annotation'] || window.ChartAnnotation;
     if (!annotationPlugin) return {};
@@ -52,12 +50,14 @@ function buildTooltipConfig(color) {
         bodyColor: cssVar('--dashboard-tooltip-body-color'),
         padding: 8,
         callbacks: {
-            title: items => items[0].label
+            title: function (items) {
+                return items[0].label;
+            }
         }
     };
 }
 
-// True when this tick is the newest reading on the chart
+// true if this tick is the newest reading
 function isLastTick(ctx) {
     return ctx.tick.value === ctx.scale.getLabels().length - 1;
 }
@@ -70,16 +70,25 @@ function xTickFont(ctx) {
     return isLastTick(ctx) ? { size: 11, weight: 'bold' } : { size: 8 };
 }
 
-// Label the newest point as "Now" instead of just its time
+// label the newest point "Now" instead of just its time
 function xTickLabel(value, index) {
     const label = this.getLabelForValue(value);
     return index === this.getLabels().length - 1 ? 'Now · ' + label : label;
 }
 
-// Chart.js sometimes skips the very last tick when space is tight, force it back in
+// chart.js sometimes drops the last tick when space is tight, force it back
 function keepLastTickVisible(axis) {
     const lastIndex = axis.getLabels().length - 1;
-    if (lastIndex >= 0 && !axis.ticks.some(t => t.value === lastIndex)) {
+    if (lastIndex < 0) return;
+
+    let found = false;
+    for (let i = 0; i < axis.ticks.length; i++) {
+        if (axis.ticks[i].value === lastIndex) {
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
         axis.ticks.push({ value: lastIndex });
     }
 }
@@ -108,7 +117,7 @@ function buildScalesConfig() {
     };
 }
 
-// Create a Chart.js sparkline for a specific sensor metric
+// builds one sparkline chart for a metric
 function buildChart(key) {
     const cfg = CHARTS[key];
     const ctx = document.getElementById('chart-' + key);
@@ -117,6 +126,12 @@ function buildChart(key) {
     const color = cssVar(cfg.color);
     ctx.setAttribute('role', 'img');
     ctx.setAttribute('aria-label', 'Line chart of recent ' + key + ' readings');
+
+    const plugins = {
+        legend: { display: false }, // sparklines don't need one
+        tooltip: buildTooltipConfig(color)
+    };
+    Object.assign(plugins, buildBaselineAnnotation(cfg));
 
     cfg.chart = new Chart(ctx, {
         type: 'line',
@@ -135,21 +150,20 @@ function buildChart(key) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            // Animate chart updates smoothly when hovering or refreshing data
+            // smooth animation on hover/refresh
             transitions: {
                 active: { animation: { duration: 400, easing: 'linear' } }
             },
-            plugins: {
-                legend: { display: false }, // sparklines don't need a legend
-                tooltip: buildTooltipConfig(color),
-                ...buildBaselineAnnotation(cfg)
-            },
+            plugins: plugins,
             scales: buildScalesConfig()
         }
     });
 }
 
-// Initialize all dashboard sparkline charts
+// kick off all six charts
 function initAllCharts() {
-    Object.keys(CHARTS).forEach(buildChart);
+    const keys = Object.keys(CHARTS);
+    for (let i = 0; i < keys.length; i++) {
+        buildChart(keys[i]);
+    }
 }

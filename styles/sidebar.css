@@ -209,27 +209,6 @@
   transform: scale(1.1);
 }
 
-.sidebar-footer {
-  padding: 1rem;
-  border-top: 1px solid rgba(30, 41, 59, 0.6);
-  background-color: #060a14;
-}
-
-.sidebar-footer-note {
-  font-size: 0.8125rem;
-  line-height: 1.5;
-  color: rgb(148 163 184);
-  margin: 0;
-}
-
-.sidebar-footer-note strong {
-  color: #ffffff;
-}
-
-.sidebar-footer-note strong.pro-highlight {
-  color: #ffcb05;
-}
-
 .sidebar-inject-btn {
   width: 100%;
   padding: 0.625rem 0;

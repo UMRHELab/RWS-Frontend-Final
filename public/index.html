@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MRWS - Public Environmental Observatory</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <link rel="stylesheet" href="../styles/styles.css">
     <link rel="stylesheet" href="../styles/sidebar.css">
     <link rel="stylesheet" href="../styles/footer.css">
@@ -15,13 +14,15 @@
 </head>
 <body>
 
+    <div class="mobile-nav-backdrop"></div>
+
     <aside class="sidebar">
         <div class="sidebar-header">
             <img src="../icon/rwsbiglogo.png" alt="RWS Logo" class="sidebar-logo-img">
         </div>
 
         <nav class="sidebar-nav">
-            <p class="sidebar-section-label">Stations</p>
+            <p class="sidebar-section-label">Navigate</p>
 
             <a href="index.html#overview" class="sidebar-link">
                 <img src="../icon/overview.png" alt="Overview" class="sidebar-nav-icon"> Overview
@@ -30,47 +31,17 @@
                 <img src="../icon/currentcon.png" alt="Current Conditions" class="sidebar-nav-icon"> Current Conditions
             </a>
 
-            <a href="index.html#measures" class="sidebar-link"><img src="../icon/measure.png" alt="What we measure" class="sidebar-nav-icon"> What we measure</a>
-            <a href="index.html#news"     class="sidebar-link"><img src="../icon/news.png" alt="News & Updates" class="sidebar-nav-icon"> News &amp; Updates</a>
-
-            <div class="sidebar-dropdown">
-                <button onclick="toggleRadiationsMenu()" class="sidebar-dropdown-toggle">
-                    <span class="sidebar-dropdown-label">
-                        <img src="../icon/radiation.png" alt="Stations" class="sidebar-nav-icon"> Stations
-                    </span>
-                    <svg id="radiation-chevron" class="sidebar-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
-                    </svg>
-                </button>
-
-                <div id="radiations-submenu" class="sidebar-submenu hidden">
-                    <a href="station.html?station=cs-facility" class="sidebar-station-link inactive">
-                        <span>CS Facility Aux Station</span>
-                        <img src="../icon/online.png" alt="Online" class="sidebar-station-icon">
-                    </a>
-                    <a href="station.html?station=basement" class="sidebar-station-link inactive">
-                        <span>Basement Aux Station</span>
-                        <img src="../icon/online.png" alt="Online" class="sidebar-station-icon">
-                    </a>
-                    <a href="station.html?station=rm1962" class="sidebar-station-link inactive">
-                        <span>Room 1962 Aux Station</span>
-                        <img src="../icon/online.png" alt="Online" class="sidebar-station-icon">
-                    </a>
-
-                </div>
-            </div>
+            <a href="measures.html" class="sidebar-link"><img src="../icon/measure.png" alt="What we measure" class="sidebar-nav-icon"> What we measure</a>
+            <a href="news.html"           class="sidebar-link"><img src="../icon/news.png" alt="News" class="sidebar-nav-icon"> News</a>
+            <a href="glossary.html"       class="sidebar-link"><img src="../icon/about.png" alt="Glossary" class="sidebar-nav-icon"> Glossary</a>
         </nav>
-
-        <div class="sidebar-footer">
-            <p class="sidebar-footer-note"><strong>Lite</strong> covers wind, rainfall, humidity, and UV. <strong class="pro-highlight">Pro</strong> covers the radiation gear &mdash; Swords, Rad8, RadonEye, Gamon-D/S, and the datalogger.</p>
-        </div>
     </aside>
 
     <div class="main-viewport">
 
         <header class="global-header">
+            <button class="mobile-nav-toggle" aria-label="Open menu"><span></span><span></span><span></span></button>
             <div class="header-left">
-                <span class="header-scope-label">Public Environmental Observatory</span>
                 <div class="network-badge">
                     <span class="network-ping-dot"></span>
                     Live Network Data
@@ -88,7 +59,6 @@
 
         <main class="workspace-container index-content">
 
-            <!-- Greeting / hero banner -->
             <div class="station-hero-banner">
                 <div class="hero-identity-block">
                     <div class="hero-weather-summary">
@@ -126,76 +96,131 @@
                 </div>
             </div>
 
-            <!-- Stations Map -->
-            <section id="overview">
-                <div class="section-row-header">
-                    <div>
-                        <h2>Stations Map</h2>
+            <section id="about">
+                <div class="about-row">
+                    <div class="about-card">
+                        <span class="about-eyebrow">What we measure</span>
+                        <h2>Live radiation, weather, and soil data</h2>
+                        <p>RWS is a public tool for browsing live and historical radiation, weather, and soil readings from sensors across North Campus.</p>
+
+                        <div class="about-cta-row">
+                            <a href="glossary.html" class="glossary-btn">
+                                <span class="glossary-btn-text">
+                                    <span class="glossary-btn-question">Confused on the terms?</span>
+                                    <span class="glossary-btn-cta">Go to Glossary</span>
+                                </span>
+                            </a>
+                            <a href="measures.html" class="glossary-btn glossary-btn--secondary">
+                                <span class="glossary-btn-text">
+                                    <span class="glossary-btn-question">Want the full picture?</span>
+                                    <span class="glossary-btn-cta">What We Measure</span>
+                                </span>
+                            </a>
+                        </div>
+
+                        <p class="station-hover-hint">Try hovering over these cards!</p>
+                        <div class="station-hover-hint-arrow">&darr;</div>
+                        <div class="station-hover-row">
+                            <div class="station-hover-card" data-station="roof" data-diagram="images/about-diagram-roof.png">
+                                <h4>Rooftop</h4>
+                                <span class="station-room-num">Room 1958</span>
+                            </div>
+                            <div class="station-hover-card" data-station="mainlab" data-diagram="images/about-diagram-mainlab.png">
+                                <h4>Main Lab</h4>
+                                <span class="station-room-num">Room 1962</span>
+                            </div>
+                            <div class="station-hover-card" data-station="basement" data-diagram="images/about-diagram-basement.png">
+                                <h4>Basement</h4>
+                                <span class="station-room-num">Room G963A</span>
+                            </div>
+                        </div>
                     </div>
-                    <button onclick="exportAllStationsCSV()" class="export-data-btn">
-                        Export Data <span>▼</span>
-                    </button>
+                    <div class="about-diagram-col">
+                        <img src="images/about-diagram.png" alt="Building cross-section diagram showing rooftop, lab, and basement sensor locations" class="about-diagram-img" id="about-diagram-img" data-default-src="images/about-diagram.png">
+                    </div>
                 </div>
+            </section>
 
+            <section class="measures-teaser">
+                <div class="measures-teaser-image">
+                    <img src="images/ners_indoor.jpg" alt="Building diagram showing sensor locations">
+                </div>
+                <div class="measures-teaser-content">
+                    <span class="measures-teaser-eyebrow">About the data</span>
+                    <h2>Understanding Our Environment</h2>
+                    <p>We measure many things to understand our environment and keep our campus community informed, from background radiation to soil moisture, across every station we monitor.</p>
+                    <a href="measures.html" class="measures-teaser-btn">Learn more &rarr;</a>
+                </div>
+            </section>
+
+            <section id="overview">
+                <h2 class="explorer-section-title">Explore station data</h2>
                 <div class="map-grid">
-                    <div class="three-card">
-                        <div id="three-container" class="three-canvas"></div>
-                        <p class="three-card-caption">Drag to orbit<br>Scroll to zoom</p>
+                    <div class="explorer-filter-col">
+                        <div class="filter-group">
+                            <label class="filter-label" for="building">Building</label>
+                            <select id="building" class="filter-select" onchange="onBuildingChange()">
+                                <option value="Cooley">Cooley</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label" for="room">Room</label>
+                            <select id="room" class="filter-select" disabled onchange="onRoomChange()"></select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label" for="sensor">Sensor</label>
+                            <select id="sensor" class="filter-select" disabled onchange="onSensorChange()"></select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label" for="metric">Data Type</label>
+                            <select id="metric" class="filter-select" disabled></select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label" for="time-range">Time Range</label>
+                            <select id="time-range" class="filter-select">
+                                <option value="1">1 Day</option>
+                                <option value="7" selected>7 Days</option>
+                                <option value="30">30 Days</option>
+                            </select>
+                        </div>
+                        <button id="submit-query-btn" class="filter-submit" onclick="onSubmit()">Get Data</button>
                     </div>
 
-                    <div class="station-list-col">
-                        <div class="station-card station-card--roof">
-                            <div class="station-card-top">
-                                <div>
-                                    <h3>CS Facility Auxiliary Station</h3>
-                                    <p>Roof Level Node Location</p>
-                                </div>
-                            </div>
-                            <div class="station-card-right">
-                                <div class="station-status" id="status-cs-facility">
-                                    <span class="station-dot station-dot--roof animate-pulse"></span>
-                                    <span class="station-status-label">—</span>
-                                </div>
-                                <a href="station.html?station=cs-facility" class="station-link-btn station-link-btn--roof">See Full Data →</a>
-                            </div>
+                    <div class="explorer-embed">
+                        <h3 id="explorer-chart-title" class="explorer-chart-title">The chart will appear here</h3>
+                        <div class="explorer-chart-wrap">
+                            <canvas id="explorer-chart"></canvas>
                         </div>
 
-                        <div class="station-card station-card--indoor">
-                            <div class="station-card-top">
-                                <div>
-                                    <h3>RM 1962 Auxiliary Station</h3>
-                                    <p>Indoor Main Lab Level Node</p>
+                        <div id="explorer-results" class="explorer-results hidden">
+                            <div class="explorer-results-row">
+                                <div class="explorer-stat">
+                                    <span class="explorer-stat-label">Average</span>
+                                    <span class="explorer-stat-value" id="explorer-average">—</span>
+                                </div>
+                                <div class="explorer-stat">
+                                    <span class="explorer-stat-label">Readings</span>
+                                    <span class="explorer-stat-value explorer-stat-value--accent" id="explorer-count">—</span>
                                 </div>
                             </div>
-                            <div class="station-card-right">
-                                <div class="station-status" id="status-rm1962">
-                                    <span class="station-dot station-dot--indoor animate-pulse"></span>
-                                    <span class="station-status-label">—</span>
-                                </div>
-                                <a href="station.html?station=rm1962" class="station-link-btn station-link-btn--indoor">See Full Data →</a>
+                            <div class="explorer-table-header">
+                                <p class="explorer-table-note" id="explorer-table-note"></p>
+                                <button id="explorer-export-btn" class="explorer-export-btn" onclick="exportExplorerCSV()">Export CSV</button>
                             </div>
-                        </div>
-
-                        <div class="station-card station-card--basement">
-                            <div class="station-card-top">
-                                <div>
-                                    <h3>Basement Aux Station</h3>
-                                    <p>Sub-level Core Node Location</p>
-                                </div>
+                            <div class="explorer-table-wrap">
+                                <table class="explorer-table">
+                                    <thead>
+                                        <tr><th id="explorer-table-col1">Label</th><th id="explorer-table-col2">Value</th></tr>
+                                    </thead>
+                                    <tbody id="explorer-table-body"></tbody>
+                                </table>
                             </div>
-                            <div class="station-card-right">
-                                <div class="station-status" id="status-basement">
-                                    <span class="station-dot station-dot--basement animate-pulse"></span>
-                                    <span class="station-status-label">—</span>
-                                </div>
-                                <a href="station.html?station=basement" class="station-link-btn station-link-btn--basement">See Full Data →</a>
-                            </div>
+                            <button id="explorer-expand-btn" class="explorer-expand-btn hidden" onclick="toggleExplorerTableExpand()">Show more ▾</button>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Environment Overview -->
             <section id="conditions" class="env-section">
                 <div class="env-header">
                     <div>
@@ -206,8 +231,6 @@
                         <span id="live-badge-text">Live</span>
                     </div>
                 </div>
-
-                <p class="env-pro-note">Loading latest sensor readings&hellip;</p>
 
                 <div class="env-grid">
                     <div class="sparkline-area">
@@ -292,7 +315,7 @@
                                 </div>
                             </div>
 
-                            <button onclick="openRadiationInfo()" class="rad-explain-btn">
+                            <button onclick="openModal('rad-info-modal')" class="rad-explain-btn">
                                 <span class="info-badge">i</span>
                                 <span>What does this mean?</span>
                                 <span class="arrow">›</span>
@@ -302,61 +325,50 @@
                 </div>
             </section>
 
-            <!-- What We Measure / Highlights / Camera -->
             <section id="measures" class="info-cards-grid">
-                <div class="info-card info-card--wide">
-                    <div>
-                        <h3>Understanding our Environment</h3>
-                        <p>We measure many things to understand our environment and keep our campus community informed.</p>
-                        <div class="measure-grid">
-                            <div class="measure-item">
-                                <div class="measure-icon measure-icon--rad"><img src="../icon/rad.png" alt="Radiation"></div>
-                                <div>
-                                    <h4>Radiation</h4>
-                                    <p>Natural background variation.</p>
-                                </div>
-                            </div>
-                            <div class="measure-item">
-                                <div class="measure-icon measure-icon--solar"><img src="../icon/solar.png" alt="Solar"></div>
-                                <div>
-                                    <h4>Solar</h4>
-                                    <p>Solar energy and climate metrics.</p>
-                                </div>
-                            </div>
-                            <div class="measure-item">
-                                <div class="measure-icon measure-icon--weather"><img src="../icon/cloud_under.png" alt="Weather"></div>
-                                <div>
-                                    <h4>Weather</h4>
-                                    <p>Temp, humidity, precipitation.</p>
-                                </div>
-                            </div>
-                            <div class="measure-item">
-                                <div class="measure-icon measure-icon--soil"><img src="../icon/soil.png" alt="Soil"></div>
-                                <div>
-                                    <h4>Soil</h4>
-                                    <p>Moisture and ground health.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <button class="info-card-btn" onclick="openMeasureInfo()">Learn more about what we measure ›</button>
-                </div>
-
                 <div class="info-card info-card--half">
                     <div>
-                        <h3>Recent Highlights</h3>
-                        <div class="highlights-list">
-                            <p class="highlights-empty">Loading updates…</p>
+                        <h3>News &amp; Updates</h3>
+                        <div class="news-compact-list">
+                            <div class="news-compact-item">
+                                <div class="news-card-thumbnail news-card-thumbnail--sm">
+                                    <img src="images/Screenshot 2026-05-30 at 7.42.17 PM 1.png" alt="">
+                                </div>
+                                <div class="news-compact-text">
+                                    <span class="news-card-tag news-tag--update">Update</span>
+                                    <h4>New dashboard is up</h4>
+                                    <span class="news-compact-date">July 3, 2026</span>
+                                </div>
+                            </div>
+                            <div class="news-compact-item">
+                                <div class="news-card-thumbnail news-card-thumbnail--sm">
+                                    <img src="images/Gemini_Generated_Image_4f3vh54f3vh54f3v.png" alt="">
+                                </div>
+                                <div class="news-compact-text">
+                                    <span class="news-card-tag news-tag--info">Info</span>
+                                    <h4>Adding more sensors to get accurate measurements</h4>
+                                    <span class="news-compact-date">June 26, 2026</span>
+                                </div>
+                            </div>
+                            <div class="news-compact-item">
+                                <div class="news-card-thumbnail news-card-thumbnail--sm">
+                                    <img src="images/Gemini_Generated_Image_bc0c44bc0c44bc0c.png" alt="">
+                                </div>
+                                <div class="news-compact-text">
+                                    <span class="news-card-tag news-tag--maintenance">Maintenance</span>
+                                    <h4>CS Facility roof sensor will be updated soon</h4>
+                                    <span class="news-compact-date">June 11, 2026</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <button class="info-card-btn" onclick="window.open('https://docs.google.com/spreadsheets/d/e/2PACX-1vQjLt42NKFE3yuZuJtxkWRj2fthgy0gpmPTNe_jYKziWHULaKSyapqStR1hn3qHoPigQVprJE1Q3TYY/pubhtml', '_blank')">View All Updates ›</button>
+                    <a href="news.html" class="info-card-btn">View All News ›</a>
                 </div>
 
                 <div class="info-card info-card--half">
                     <div>
                         <h3>Live Camera</h3>
                         <div class="camera-thumbnail">
-                            <!-- placeholder screenshot - swap src for the actual camera image/feed when available -->
                             <img src="images/Screenshot 2026-05-30 at 9.43.34 PM 1.png" alt="Live Camera">
                             <div class="camera-live-tag">Live</div>
                         </div>
@@ -376,67 +388,15 @@
                 </div>
             </section>
 
-            <!-- News & Updates -->
-            <section id="news" class="news-section">
-                <div class="news-header">
-                    <div>
-                        <h2>News &amp; Updates</h2>
-                        <p>Latest announcements from the RWS team</p>
-                    </div>
-                </div>
-                <div class="news-grid">
-                    <p class="highlights-empty">Loading news…</p>
-                </div>
-                <button class="info-card-btn news-view-all-btn" onclick="window.open('https://docs.google.com/spreadsheets/d/e/2PACX-1vQba-I86uAOYnBP3C7n6SOkHMGKqo72eNM6N4tfpe5WDs-KVBj0WrftIFyNQqcxG1piw7ZwPjsZmMu-/pubhtml', '_blank')">View All News ›</button>
-            </section>
-
             <div id="footer-placeholder"></div>
         </main>
     </div>
 
-    <!-- What We Measure Modal -->
-    <div id="measure-info-modal" class="overlay-modal hidden">
+    <div id="rad-info-modal" class="overlay-modal hidden" role="dialog" aria-modal="true" aria-labelledby="rad-info-modal-title">
         <div class="rad-modal-card">
             <div class="modal-header">
-                <h2>What we measure</h2>
-                <button onclick="closeMeasureInfo()" class="modal-close-btn">✕</button>
-            </div>
-
-            <div class="rad-modal-body">
-                <p class="rad-intro">The RWS network tracks the environment around North Campus with sensors at three stations, from the roof down to the basement. Here's what each group of instruments actually records.</p>
-
-                <div class="measure-modal-grid">
-                    <div class="measure-modal-card">
-                        <img src="../icon/temp.png" alt="" class="measure-modal-icon">
-                        <h4>Weather</h4>
-                        <p>Air temperature, humidity, and barometric pressure from BME680 sensors, plus wind speed, wind direction, and rainfall from the roof station.</p>
-                    </div>
-                    <div class="measure-modal-card">
-                        <img src="../icon/radiation.png" alt="" class="measure-modal-icon">
-                        <h4>Radiation</h4>
-                        <p>Background gamma radiation counted by Geiger tubes, reported as counts per minute. Levels here are typical background and vary naturally with weather and seasons.</p>
-                    </div>
-                    <div class="measure-modal-card">
-                        <img src="../icon/HERO/boxicons_radiation.png" alt="" class="measure-modal-icon">
-                        <h4>Radon</h4>
-                        <p>Radon concentration in air, measured by RadonEye detectors and a RAD8 monitor in pCi/L. Radon is a naturally occurring radioactive gas that seeps from the ground.</p>
-                    </div>
-                    <div class="measure-modal-card">
-                        <img src="../icon/soil.png" alt="" class="measure-modal-icon">
-                        <h4>Soil &amp; Sun</h4>
-                        <p>Soil moisture and soil temperature probes track ground conditions, while a solar radiation sensor measures incoming sunlight intensity.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Radiation Info Modal -->
-    <div id="rad-info-modal" class="overlay-modal hidden">
-        <div class="rad-modal-card">
-            <div class="modal-header">
-                <h2>What is background radiation?</h2>
-                <button onclick="closeRadiationInfo()" class="modal-close-btn">✕</button>
+                <h2 id="rad-info-modal-title">What is background radiation?</h2>
+                <button onclick="closeModal('rad-info-modal')" class="modal-close-btn" aria-label="Close">✕</button>
             </div>
 
             <div class="rad-modal-body">
@@ -464,11 +424,9 @@
         </div>
     </div>
 
-    <script src="js/footer.js"></script>
-    <!-- homepage code, split by topic. load order matters: live goes last -->
-    <script src="js/dashboard-news.js"></script>
-    <script src="js/dashboard-3d.js"></script>
+    <script src="js/shared.js"></script>
     <script src="js/dashboard-charts.js"></script>
     <script src="js/dashboard-live.js"></script>
+    <script src="js/simple-explorer.js"></script>
 </body>
 </html>

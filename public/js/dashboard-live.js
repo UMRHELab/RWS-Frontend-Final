@@ -1,14 +1,19 @@
-// Homepage: live sensor data, status indicators, popups, and CSV export
-// Fetches live readings, updates dashboard cards/charts, and initializes page features
+// homepage script - keeps the cards/charts updated, handles the popups
 
-// Update the top navigation clock every second
+// tick the clock every second
 function updateClock() {
     const el = document.getElementById('top-bar-clock');
     if (el) el.textContent = new Date().toLocaleTimeString();
 }
 setInterval(updateClock, 1000);
 
-// Display time-based greeting and current date
+// set text on an element if it exists
+function setElementText(id, text) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+}
+
+// good morning/afternoon/evening + today's date
 function setGreeting() {
     const hour = new Date().getHours();
     let greeting = 'Good Evening!';
@@ -17,31 +22,18 @@ function setGreeting() {
     } else if (hour < 17) {
         greeting = 'Good Afternoon!';
     }
-    const greetingEl = document.getElementById('greeting-text');
-    if (greetingEl) greetingEl.textContent = greeting;
-
-    const dateEl = document.getElementById('greeting-date');
-    if (dateEl) {
-        dateEl.textContent = new Date().toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-    }
+    setElementText('greeting-text', greeting);
+    setElementText('greeting-date', new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    }));
 }
 setGreeting();
 
-// Show text in an element if it exists
-function setElementText(id, text) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = text;
-}
-
-// Radiation status display
-// Updates the radiation card text and level class based on current radon levels
-// Thresholds follow the EPA action level reference of 4 pCi/L
-// All coloring lives in index.css under .rad-normal / .rad-elevated / .rad-high
+// radiation card status, based on the epa action level of 4 pci/l
+// (colors live in index.css, this just picks the label/text)
 const RADON_LEVELS = [
     { below: 2, cls: 'rad-normal', label: 'Normal', title: 'Safe range.', text: 'Below the EPA action level of 4 pCi/L.' },
     { below: 4, cls: 'rad-elevated', label: 'Elevated', title: 'Elevated.', text: 'Approaching the EPA action level of 4 pCi/L.' },
@@ -52,14 +44,13 @@ function setRadiationStatus(pci) {
     if (pci == null || isNaN(pci)) return;
 
     let lvl = null;
-    for (const level of RADON_LEVELS) {
-        if (pci < level.below) {
-            lvl = level;
+    for (let i = 0; i < RADON_LEVELS.length; i++) {
+        if (pci < RADON_LEVELS[i].below) {
+            lvl = RADON_LEVELS[i];
             break;
         }
     }
 
-    // JS only updates the text — the colors come from css
     setElementText('rad-status-text', lvl.label);
     setElementText('rad-info-title', lvl.title);
     setElementText('rad-info-text', lvl.text);
@@ -70,7 +61,6 @@ function setRadiationStatus(pci) {
     }
     setElementText('rad-range-text', rangeText);
 
-    // Swap the level class on the panel, css does the rest
     const panel = document.querySelector('.rad-panel');
     if (panel) {
         panel.classList.remove('rad-normal', 'rad-elevated', 'rad-high', 'rad-unavailable');
@@ -78,8 +68,7 @@ function setRadiationStatus(pci) {
     }
 }
 
-// Shown instead of setRadiationStatus() when no radon sensor is currently
-// reporting, so the card doesn't keep showing a leftover "Normal" reading
+// shown when no radon sensor is currently reporting
 function setRadiationUnavailable() {
     setElementText('current-rad', '—');
     setElementText('rad-status-text', 'No data');
@@ -94,191 +83,32 @@ function setRadiationUnavailable() {
     }
 }
 
-// Station online/offline status indicators
-// A station is considered online when its latest reading is less than one hour old
-const ONLINE_MAX_AGE_MS = 60 * 60 * 1000;
-
-// Convert database timestamps into Date objects
-// Supports SQL datetime strings and Unix epoch timestamps
+// turn a sql datetime string into a real Date
 function parseDbTime(raw) {
     if (raw == null) return null;
-    const s = String(raw).trim();
-
-    let d;
-    if (/^\d+(\.\d+)?$/.test(s)) {
-        d = new Date(parseFloat(s) * 1000);
-    } else {
-        d = new Date(s.replace(' ', 'T'));
-    }
-    if (isNaN(d)) return null;
-    return d;
-}
-
-function setStationBadge(id, data) {
-    const box = document.getElementById(id);
-    if (!box) return;
-
-    let timestamp = null;
-    if (data) timestamp = data.timestamp;
-    const t = parseDbTime(timestamp);
-    const online = !!t && (Date.now() - t.getTime()) < ONLINE_MAX_AGE_MS;
-
-    // Colors and the pulse animation come from css via these classes
-    box.classList.toggle('is-online', online);
-    box.classList.toggle('is-offline', !online);
-
-    const label = box.querySelector('.station-status-label');
-    if (label) {
-        if (online) {
-            label.textContent = 'ONLINE';
-        } else {
-            label.textContent = 'OFFLINE';
-        }
-    }
-}
-
-// Update environment overview message based on available sensors
-function setEnvNote(rad8, room, roof) {
-    const note = document.querySelector('.env-pro-note');
-    if (!note) return;
-
-    if (!rad8 && !room) {
-        note.textContent = "Sensors aren't reporting right now. Waiting for new readings.";
-        return;
-    }
-
-    let src = 'RAD8 monitor (main lab)';
-    if (room) {
-        src = 'RWS-Lite (Rm 1962)';
-    }
-
-    let roofNote = ', with wind/rain/solar data appearing once the rooftop logger connection is available';
-    if (roof) {
-        roofNote = '';
-    }
-
-    note.textContent = `Live readings from the ${src}${roofNote}.`;
+    const d = new Date(String(raw).trim().replace(' ', 'T'));
+    return isNaN(d) ? null : d;
 }
 
 function setLiveBadge(text) {
     setElementText('live-badge-text', text);
 }
 
-// Fallback state for connection issues - keeps the last successful reading
-// on screen indefinitely instead of clearing the page when a poll fails.
-// The live badge and "last reading" time are left untouched too, so the
-// page never hides how old the frozen reading actually is.
+// last good reading, shown if a poll fails
 let lastGoodSensor = null;
 
-// Timestamp of the newest reading already drawn on the charts
-// New points are only added when the instruments log a new reading
-// (the RAD8 reports roughly every 10 minutes), not on every poll.
-let lastPlottedTs = null;
+// stops us from plotting the same reading twice
+let lastPlottedSignature = null;
 
-// Pre-fill temp/humidity/radon charts with the RAD8's recent history
-// so the graphs do not start empty. Runs once.
-// Wind/rain/solar have no historical source and stay empty.
-let chartsSeeded = false;
+// returns readings grouped by sensor type (rad8, cr1000), not one flat object
+const HOMEPAGE_API_URL = "http://127.0.0.1:5001/api/presentation-data";
 
-function seedChartsFromHistory(history) {
-    if (chartsSeeded) return;
-    if (!history || history.length === 0) return;
-    chartsSeeded = true;
-
-    for (const reading of history) {
-        let time = parseDbTime(reading.timestamp);
-        if (!time) time = new Date();
-        const label = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        addSeedPoint('temp', label, reading.ambient_temp_f);
-        addSeedPoint('humidity', label, reading.relative_humidity);
-        addSeedPoint('radon', label, reading.radon_pci_l);
-    }
-
-    if (CHARTS.temp.chart) CHARTS.temp.chart.update();
-    if (CHARTS.humidity.chart) CHARTS.humidity.chart.update();
-    if (CHARTS.radon.chart) CHARTS.radon.chart.update();
-
-    // Remember the newest seeded reading so the update loop does not replot it
-    lastPlottedTs = history[history.length - 1].timestamp;
-}
-
-// Add one value to one chart
-function addSeedPoint(key, label, value) {
-    if (value == null) return;
-    CHARTS[key].labels.push(label);
-    CHARTS[key].data.push(value);
-}
-
-// Request one station's latest reading, returns null on failure
-async function fetchStation(station) {
-    try {
-        const res = await fetch('https://dev-engin-rws.pantheonsite.io/live-data.php?station=' + station);
-        const json = await res.json();
-        return json.data;
-    } catch (e) {
-        return null;
-    }
-}
-
-// Fetch all four station feeds in parallel; each one resolves to null on failure
-async function fetchAllStations() {
-    const [room, roof, rad8, basement] = await Promise.all([
-        fetchStation('rm1962'),
-        fetchStation('cs-facility'),
-        fetchStation('rad8'),
-        fetchStation('basement'),
-    ]);
-    return { room, roof, rad8, basement };
-}
-
-// Reads one field from a sensor reading, or null if the sensor is missing
-function fromSensor(sensor, field) {
-    if (sensor && sensor[field] != null) return sensor[field];
-    return null;
-}
-
-// Combine the separate station feeds into one reading for the homepage.
-// The RAD8 (Dropbox CSV) backs up the room sensor since it's in the same room.
-function mergeSensorReading(stations) {
-    const room = stations.room;
-    const roof = stations.roof;
-    const rad8 = stations.rad8;
-
-    let timestamp = fromSensor(rad8, 'timestamp');
-    if (timestamp == null) timestamp = fromSensor(room, 'timestamp');
-    if (timestamp == null) timestamp = fromSensor(roof, 'timestamp');
-
-    let indoorTemp = fromSensor(room, 'indoor_temp');
-    if (indoorTemp == null) indoorTemp = fromSensor(rad8, 'ambient_temp_f');
-
-    let indoorHumidity = fromSensor(room, 'indoor_humidity');
-    if (indoorHumidity == null) indoorHumidity = fromSensor(rad8, 'relative_humidity');
-
-    // Use the RAD8's radon concentration in pCi/L, not counts per minute
-    let radiation = fromSensor(rad8, 'radon_pci_l');
-    if (radiation == null) radiation = fromSensor(room, 'radiation');
-
-    let radonLevel = fromSensor(room, 'radon_level');
-    if (radonLevel == null) radonLevel = fromSensor(rad8, 'radon_pci_l');
-
-    return {
-        timestamp: timestamp,
-        indoor_temp: indoorTemp,
-        indoor_humidity: indoorHumidity,
-        radiation: radiation,
-        radon_level: radonLevel,
-        wind_speed: fromSensor(roof, 'wind_speed'),
-        rainfall: fromSensor(roof, 'rainfall'),
-        lux: fromSensor(roof, 'lux'),
-    };
-}
-
-// Set an element's text to a rounded number, only if there's an actual value
+// rounds a number into an element, skips it if null
 function setReadout(id, val, dec) {
     if (val != null) setElementText(id, Number(val).toFixed(dec));
 }
 
-// Update every number on the page that shows the current sensor reading
+// updates every number on the page
 function updateReadouts(sensor) {
     setReadout('current-temp', sensor.indoor_temp, 1);
     setReadout('current-humidity', sensor.indoor_humidity, 1);
@@ -286,12 +116,11 @@ function updateReadouts(sensor) {
     setReadout('current-rain', sensor.rainfall, 2);
     setReadout('current-solar', sensor.lux, 0);
     setReadout('current-radon', sensor.radon_level, 2);
-    // weather-temp is NOT set here - it's Ann Arbor's real outdoor temperature
-    // from a public weather API (see footer.js), not this station's own sensor
-
-    // Header pill keeps its °F suffix
+    // header pill keeps its °F suffix
     if (sensor.indoor_temp != null) {
         setElementText('nav-temp', Number(sensor.indoor_temp).toFixed(0) + '°F');
+        // hero banner has its own static °F unit span, just needs the number
+        setElementText('weather-temp', Number(sensor.indoor_temp).toFixed(0));
     }
 
     if (sensor.radiation != null) {
@@ -302,193 +131,166 @@ function updateReadouts(sensor) {
     }
 }
 
-// Push a new point onto each chart, but only when the instruments actually
-// logged something new (not on every 60s poll)
-function plotNewReading(sensor) {
-    if (sensor.timestamp) {
-        if (sensor.timestamp === lastPlottedTs) return; // nothing new yet
-        lastPlottedTs = sensor.timestamp;
+// adds a point, drops the oldest once full - missing data stays a gap, never faked
+function pushChartPoint(key, label, value) {
+    const cfg = CHARTS[key];
+    if (!cfg) return;
+
+    // a single point renders as nothing (Chart.js needs two to draw a
+    // line), so seed the very first reading with a duplicate lead-in point
+    // - same real value, not faked data, just enough geometry to draw
+    if (cfg.labels.length === 0 && value != null) {
+        cfg.labels.push('');
+        cfg.data.push(value);
     }
 
-    // Use the instrument's own clock, browser clock as backup
-    let readingTime = parseDbTime(sensor.timestamp);
-    if (!readingTime) readingTime = new Date();
-    const ts = readingTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    cfg.labels.push(label);
+    cfg.data.push(value == null ? null : value);
+    if (cfg.labels.length > MAX_POINTS) {
+        cfg.labels.shift();
+        cfg.data.shift();
+    }
+    if (cfg.chart) cfg.chart.update();
+}
 
-    const values = {
-        temp: sensor.indoor_temp,
-        humidity: sensor.indoor_humidity,
-        wind: sensor.wind_speed,
-        rain: sensor.rainfall,
-        solar: sensor.lux,
-        radon: sensor.radon_level,
+// only plots when there's an actually new reading, not every poll.
+// dedupes on the actual values rather than the reading's own timestamp -
+// on this DB the values can change while the timestamp column doesn't move,
+// so a timestamp-only check was silently dropping genuinely new readings
+function plotNewReading(sensor) {
+    const signature = JSON.stringify([
+        sensor.indoor_temp, sensor.indoor_humidity, sensor.wind_speed,
+        sensor.rainfall, sensor.lux, sensor.radon_level
+    ]);
+    if (signature === lastPlottedSignature) return;
+    lastPlottedSignature = signature;
+
+    // still prefer the reading's own timestamp for the x-axis label when
+    // it's usable, but fall back to "now" so a point never gets skipped
+    // just because parseDbTime() couldn't make sense of it
+    const readingTime = parseDbTime(sensor.timestamp) || new Date();
+
+    const label = readingTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+    pushChartPoint('temp', label, sensor.indoor_temp);
+    pushChartPoint('humidity', label, sensor.indoor_humidity);
+    pushChartPoint('wind', label, sensor.wind_speed);
+    pushChartPoint('rain', label, sensor.rainfall);
+    pushChartPoint('solar', label, sensor.lux);
+    pushChartPoint('radon', label, sensor.radon_level);
+}
+
+// fetches the latest reading - throws on failure so updateLiveChart()
+// below can fall back to the last good reading instead of blanking the page
+async function fetchHomepageReading() {
+    const res = await fetch(HOMEPAGE_API_URL);
+    if (!res.ok) throw new Error(`Homepage API error: ${res.status}`);
+    const payload = await res.json();
+
+    // rad8 = temp/humidity/radon, cr1000 = wind/rain
+    const data = payload.data || {};
+    const rad8 = data.rad8 || {};
+    const cr1000 = data.cr1000 || {};
+
+    // ambient_temp is in Celsius, every readout on this page is °F
+    const ambientTempF = rad8.ambient_temp != null ? (rad8.ambient_temp * 9 / 5 + 32) : null;
+
+    let timestamp = null;
+    if (rad8.timestamp != null) {
+        timestamp = rad8.timestamp;
+    } else if (cr1000.timestamp != null) {
+        timestamp = cr1000.timestamp;
+    }
+
+    return {
+        // prefer rad8's timestamp, it covers most of the readouts
+        timestamp: timestamp,
+        indoor_temp: ambientTempF,
+        indoor_humidity: rad8.relative_humidity != null ? rad8.relative_humidity : null,
+        radiation: rad8.radon_pci_l != null ? rad8.radon_pci_l : null,
+        radon_level: rad8.radon_pci_l != null ? rad8.radon_pci_l : null,
+        wind_speed: cr1000.WindVel != null ? cr1000.WindVel : null,
+        rainfall: cr1000.RainTotal != null ? cr1000.RainTotal : null,
+        lux: null, // not returned by this endpoint yet
     };
+}
 
-    for (const key in values) {
-        const cfg = CHARTS[key];
-        if (!cfg) continue;
-
-        let val = values[key];
-        if (val === undefined) val = null; // offline sensor = gap in the chart, not a fake flat line
-
-        cfg.labels.push(ts);
-        cfg.data.push(val);
-        if (cfg.labels.length > MAX_POINTS) {
-            cfg.labels.shift();
-            cfg.data.shift();
-        }
-        if (cfg.chart) cfg.chart.update();
+// "Live" or "Live • last reading 3:45 PM" depending on the timestamp
+function updateLiveBadgeFromReading(sensor) {
+    const readAt = parseDbTime(sensor.timestamp);
+    if (readAt) {
+        setLiveBadge('Live: last reading ' + readAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
+    } else {
+        setLiveBadge('Live');
     }
 }
 
-// Main update loop: fetch the latest readings and push them into the page. Runs every minute.
+// runs every minute: fetch the latest reading, update the page
 async function updateLiveChart() {
     let sensor;
     try {
-        const stations = await fetchAllStations();
-        const room = stations.room;
-        const roof = stations.roof;
-        const rad8 = stations.rad8;
-        const basement = stations.basement;
-
-        // Bail only if nothing answered at all
-        if (!room && !roof && !rad8) {
-            throw new Error('no data returned from live-data.php');
-        }
-
-        let rad8History = null;
-        if (rad8) rad8History = rad8.history;
-        seedChartsFromHistory(rad8History); // first fetch only
-        setStationBadge('status-cs-facility', roof);
-        setStationBadge('status-rm1962', room);
-        setStationBadge('status-basement', basement);
-        setEnvNote(rad8, room, roof);
-
-        sensor = mergeSensorReading(stations);
-
-        // Every station reads straight from the campus db now, with no fake
-        // fallback data - so reaching this point (past the "nothing answered
-        // at all" check above) always means at least one genuinely live reading.
-        const readAt = parseDbTime(sensor.timestamp);
-        if (readAt) {
-            setLiveBadge('Live • last reading ' + readAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
-        } else {
-            setLiveBadge('Live');
-        }
-
+        sensor = await fetchHomepageReading();
+        updateLiveBadgeFromReading(sensor);
         lastGoodSensor = sensor;
     } catch (e) {
-        // Poll failed - keep showing the last good reading instead of
-        // clearing the page. If there's never been a good reading yet,
-        // just leave the page as-is and try again next poll.
-        if (lastGoodSensor) {
-            sensor = lastGoodSensor;
-        } else {
+        // poll failed - show the last good reading instead of clearing the page
+        if (!lastGoodSensor) {
             console.warn('Sensor fetch failed, no data to show yet:', e);
             return;
         }
+        sensor = lastGoodSensor;
     }
 
-    if (!sensor) return;
     updateReadouts(sensor);
     plotNewReading(sensor);
 }
 
-// "What we measure" popup
-function openMeasureInfo() {
-    const modal = document.getElementById('measure-info-modal');
+// shared open/close for both popups on this page
+function openModal(id) {
+    const modal = document.getElementById(id);
     if (modal) modal.classList.remove('hidden');
 }
-function closeMeasureInfo() {
-    const modal = document.getElementById('measure-info-modal');
+function closeModal(id) {
+    const modal = document.getElementById(id);
     if (modal) modal.classList.add('hidden');
 }
 
-// Radiation info popup
-function openRadiationInfo() {
-    const modal = document.getElementById('rad-info-modal');
-    if (modal) modal.classList.remove('hidden');
-}
-function closeRadiationInfo() {
-    const modal = document.getElementById('rad-info-modal');
-    if (modal) modal.classList.add('hidden');
-}
-
-// Close a modal when its backdrop (not its content) is clicked
-function setupModalBackdropClose(modalId, closeFn) {
-    const modal = document.getElementById(modalId);
-    if (!modal) return;
-    modal.addEventListener('click', e => {
-        if (e.target === modal) closeFn();
-    });
-}
-window.addEventListener('DOMContentLoaded', () => {
-    setupModalBackdropClose('measure-info-modal', closeMeasureInfo);
-    setupModalBackdropClose('rad-info-modal', closeRadiationInfo);
-});
-
-// How many decimal places each column gets in the CSV export
-const CSV_DECIMALS = { temp: 1, humidity: 1, wind: 1, rain: 3, solar: 0, radon: 2 };
-
-// Build a CSV with all six sensor columns and download it
-function exportAllStationsCSV() {
-    const keys = Object.keys(CHARTS);
-
-    let maxLen = 0;
-    for (const k of keys) {
-        if (CHARTS[k].labels.length > maxLen) maxLen = CHARTS[k].labels.length;
-    }
-    if (maxLen === 0) {
-        alert('No data collected yet.');
-        return;
-    }
-
-    // Use the chart with the most points as the timestamp source
-    let timestamps = [];
-    for (const k of keys) {
-        if (CHARTS[k].labels.length === maxLen) {
-            timestamps = CHARTS[k].labels;
-            break;
-        }
-    }
-
-    const colKeys = ['temp', 'humidity', 'wind', 'rain', 'solar', 'radon'];
-    const headers = ['Timestamp', 'Temp (°F)', 'Humidity (%)', 'Wind (mph)', 'Rainfall (in)', 'Solar (lx)', 'Radon (pCi/L)'];
-    const rows = [headers];
-
-    for (let i = 0; i < maxLen; i++) {
-        const row = [timestamps[i] || ''];
-        for (const key of colKeys) {
-            const val = CHARTS[key].data[i];
-            if (val != null) {
-                row.push(Number(val).toFixed(CSV_DECIMALS[key]));
-            } else {
-                row.push('');
-            }
-        }
-        rows.push(row);
-    }
-
-    downloadCSV(rows, `RWS_AllStations_${new Date().toISOString().slice(0, 10)}.csv`);
+// swaps the diagram's image, preloading first so there's no broken-image
+// flash while the new one loads
+function swapDiagram(img, src) {
+    if (img.src.endsWith(src)) return;
+    const preload = new Image();
+    preload.onload = function () {
+        img.src = src;
+    };
+    preload.src = src;
 }
 
-function downloadCSV(rows, filename) {
-    const lines = [];
-    for (const row of rows) {
-        lines.push(row.join(','));
+// hover a station card in the About section, the diagram swaps to that
+// station's highlighted image (composite art with its own "what it
+// measures" card baked in)
+function setupStationHoverCards() {
+    const img = document.getElementById('about-diagram-img');
+    const cards = document.querySelectorAll('.station-hover-card');
+    if (!img || !cards.length) return;
+
+    const defaultSrc = img.dataset.defaultSrc;
+
+    for (let i = 0; i < cards.length; i++) {
+        const card = cards[i];
+        card.addEventListener('mouseenter', function () {
+            swapDiagram(img, card.dataset.diagram);
+        });
+        card.addEventListener('mouseleave', function () {
+            swapDiagram(img, defaultSrc);
+        });
     }
-    const csv = lines.join('\n');
-    const a = document.createElement('a');
-    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-    a.download = filename;
-    a.click();
 }
 
-// Start everything once the page loads
+// kick everything off once the page loads
 window.onload = function () {
-    initThree();
     initAllCharts();
     updateLiveChart();
-    // Poll every minute; points are only added when there is a new reading
-    setInterval(updateLiveChart, 60000);
+    setInterval(updateLiveChart, 10000); // poll every 10 seconds
+    setupStationHoverCards();
 };
